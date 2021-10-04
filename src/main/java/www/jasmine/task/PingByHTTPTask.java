@@ -3,17 +3,21 @@ package www.jasmine.task;
 import www.jasmine.Command;
 import www.jasmine.config.PingConfig;
 
+import java.util.Arrays;
+
 public class PingByHTTPTask extends NetworkTask {
-    Command command = Command.PING_HTTP;
     PingConfig config;
 
-    public PingByHTTPTask(PingConfig config) {
+    public PingByHTTPTask(String[] hosts, PingConfig config) {
+        super(hosts);
         this.config = config;
+        this.command = Command.PING_HTTP;
     }
 
     @Override
     public void run() {
-        System.out.println("To run: " + command.name() + "with config: " + config.getDelay());
+        System.out.println("To run: " + command.name() + " with config timeout: " + config.getTimeout());
+        System.out.println("On hosts: " + Arrays.toString(hosts));
     }
 
     @Override

@@ -1,16 +1,16 @@
 package www.jasmine.config;
 
 public class TracertConfig {
-    long delay;
+    long timeout;
     String reportURL;
 
-    public TracertConfig(int delay, String reportURL) {
-        this.delay = delay;
+    public TracertConfig(int timeout, String reportURL) {
+        this.timeout = timeout;
         this.reportURL = reportURL;
     }
 
-    public long getDelay() {
-        return delay;
+    public long getTimeout() {
+        return timeout;
     }
 
     public String getReportURL() {
@@ -20,7 +20,7 @@ public class TracertConfig {
     @Override
     public String toString() {
         return "TracertConfig{" +
-                "delay=" + delay +
+                "timeout=" + timeout +
                 ", reportURL='" + reportURL + '\'' +
                 '}';
     }

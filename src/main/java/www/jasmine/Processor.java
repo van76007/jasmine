@@ -30,22 +30,22 @@ public class Processor {
         }
         switch (command) {
             case PING_ICMP:
-                final PingByICMPTask pingByICMPTask = new PingByICMPTask(appConfig.getPingConfig());
+                final PingByICMPTask pingByICMPTask = new PingByICMPTask(appConfig.getHosts(), appConfig.getPingConfig());
                 runPeriodicTaskThenStop(() -> {
                     pingByICMPTask.run();
-                }, appConfig.getPingConfig().getDelay());
+                }, appConfig.getDelay());
                 break;
             case PING_HTTP:
-                final PingByHTTPTask pingByHTTPTask = new PingByHTTPTask(appConfig.getPingConfig());
+                final PingByHTTPTask pingByHTTPTask = new PingByHTTPTask(appConfig.getHosts(), appConfig.getPingConfig());
                 runPeriodicTaskThenStop(() -> {
                     pingByHTTPTask.run();
-                }, appConfig.getPingConfig().getDelay());
+                }, appConfig.getDelay());
                 break;
             case TRACERT:
-                final TracertTask tracertTask = new TracertTask(appConfig.getTracertConfig());
+                final TracertTask tracertTask = new TracertTask(appConfig.getHosts(), appConfig.getTracertConfig());
                 runPeriodicTaskThenStop(() -> {
                     tracertTask.run();
-                }, appConfig.getTracertConfig().getDelay());
+                }, appConfig.getDelay());
                 break;
             default:
                 logger.warning("Unhandled command: " + command.name());

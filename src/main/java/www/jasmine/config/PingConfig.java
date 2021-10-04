@@ -2,12 +2,12 @@ package www.jasmine.config;
 
 public class PingConfig {
     int count;
-    long delay;
+    long timeout;
     String reportURL;
 
-    public PingConfig(int count, int delay, String reportURL) {
+    public PingConfig(int count, int timeout, String reportURL) {
         this.count = count;
-        this.delay = delay;
+        this.timeout = timeout;
         this.reportURL = reportURL;
     }
 
@@ -15,8 +15,8 @@ public class PingConfig {
         return count;
     }
 
-    public long getDelay() {
-        return delay;
+    public long getTimeout() {
+        return timeout;
     }
 
     public String getReportURL() {
@@ -27,7 +27,7 @@ public class PingConfig {
     public String toString() {
         return "PingConfig{" +
                 "count=" + count +
-                ", delay=" + delay +
+                ", timeout=" + timeout +
                 ", reportURL='" + reportURL + '\'' +
                 '}';
     }

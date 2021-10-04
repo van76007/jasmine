@@ -1,14 +1,14 @@
 package www.jasmine.config;
 
 import java.util.Arrays;
-import java.util.stream.Collectors;
 
 public class AppConfig {
-    public AppConfig(PingConfig pingConfig, TracertConfig tracertConfig, HostConfig[] hosts, String command) {
+    public AppConfig(PingConfig pingConfig, TracertConfig tracertConfig, String[] hosts, String command, long delay) {
         this.pingConfig = pingConfig;
         this.tracertConfig = tracertConfig;
         this.hosts = hosts;
         this.command = command;
+        this.delay = delay;
     }
 
     public PingConfig getPingConfig() {
@@ -19,24 +19,30 @@ public class AppConfig {
         return tracertConfig;
     }
 
-    public HostConfig[] getHosts() {
+    public String[] getHosts() {
         return hosts;
     }
 
     public String getCommand() { return command; }
 
+    public long getDelay() {
+        return delay;
+    }
+
     PingConfig pingConfig;
     TracertConfig tracertConfig;
-    HostConfig[] hosts;
+    String[] hosts;
     String command;
+    long delay;
 
     @Override
     public String toString() {
         return "AppConfig{" +
                 "pingConfig=" + pingConfig +
                 ", tracertConfig=" + tracertConfig +
-                ", hosts=" + Arrays.stream(hosts).map(HostConfig::toString).collect(Collectors.joining(", ")) +
+                ", hosts=" + Arrays.toString(hosts) +
                 ", command='" + command + '\'' +
+                ", delay=" + delay +
                 '}';
     }
 }
