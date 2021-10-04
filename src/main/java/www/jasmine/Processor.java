@@ -21,7 +21,13 @@ public class Processor {
             logger.severe("Invalid command in the configuration: " + this.appConfig.getCommand());
             return false;
         }
-        // ToDo: Run the command
+        switch (command) {
+            case PING_ICMP:
+            case PING_HTTP:
+            case TRACERT:
+            default:
+                logger.warning("Unhandled command: " + command.name());
+        }
         return true;
     }
 
