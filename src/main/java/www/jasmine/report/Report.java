@@ -1,8 +1,8 @@
 package www.jasmine.report;
 
 public class Report {
-    String host;
-    String message;
+    private String host;
+    private String message;
 
     public Report(String host, String message) {
         this.host = host;
