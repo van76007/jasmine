@@ -24,7 +24,7 @@ public class DefaultGatewayMacBuilder {
         try {
             PcapNetworkInterface nif = parameter.getNif();
             receiveHandle = nif.openLive(SNAPLEN, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, READ_TIMEOUT);
-            receiveHandle.setFilter("tcp and dst host " + parameter.getSourceIP().getHostAddress(), BpfProgram.BpfCompileMode.OPTIMIZE);
+            receiveHandle.setFilter("tcp and dst host " + parameter.getLocalIP().getHostAddress(), BpfProgram.BpfCompileMode.OPTIMIZE);
 
             final AtomicReference<Packet> pRef = new AtomicReference<>();
             PacketListener listener = packet -> {

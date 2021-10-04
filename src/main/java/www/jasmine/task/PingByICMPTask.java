@@ -24,7 +24,7 @@ public class PingByICMPTask extends NetworkTask {
 
     @Override
     public void run() {
-        logger.info(String.format("To run: %s on hosts: %s with config timeout %d ms", command.name(), Arrays.toString(hosts), config.getTimeout()));
+        logger.info(String.format("To run: %s on hosts: %s with config timeout %d ms", command.name(), Arrays.toString(hosts), config.getWait()));
         for(String host: hosts) {
             Runnable runnable = () -> {
                 Ping ping = new Ping(networkParameter, host);

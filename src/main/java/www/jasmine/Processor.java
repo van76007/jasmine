@@ -32,7 +32,7 @@ public class Processor {
         NetworkParameter networkParameter = builder.buildNetworkParameter();
         switch (command) {
             case PING_ICMP:
-                final PingByICMPTask pingByICMPTask = new PingByICMPTask(appConfig.getHosts(), appConfig.getPingConfig());
+                final PingByICMPTask pingByICMPTask = new PingByICMPTask(appConfig.getHosts(), appConfig.getPingConfig(), executorForWorkers, networkParameter);
                 runPeriodicTaskThenStop(pingByICMPTask::run, appConfig.getDelay());
                 break;
             case PING_HTTP:

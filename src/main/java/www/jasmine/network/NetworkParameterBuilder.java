@@ -35,24 +35,24 @@ public class NetworkParameterBuilder {
         return parameter;
     }
 
-    private NetworkParameter getLocalNetworkInterfaceParameter(InetAddress localIP) {
-        byte[] inputIpInBytes = localIP.getAddress();
+    private NetworkParameter getLocalNetworkInterfaceParameter(InetAddress hostIP) {
+        byte[] inputIpInBytes = hostIP.getAddress();
         try {
             for (PcapNetworkInterface currentInterface : Pcaps.findAllDevs()) {
                 List<PcapAddress> addresses = currentInterface.getAddresses();
                 for (PcapAddress ipAddress : addresses) {
-                    if (!isSameTypeAddress(localIP, ipAddress.getAddress())) {
+                    if (!isSameTypeAddress(hostIP, ipAddress.getAddress())) {
                         continue;
                     }
                     InetAddress maskAddr = ipAddress.getNetmask();
-                    if (maskAddr != null && !isUnderSameSubNet(localIP, ipAddress.getAddress(), maskAddr)) {
+                    if (maskAddr != null && !isUnderSameSubNet(hostIP, ipAddress.getAddress(), maskAddr)) {
                         continue;
                     }
                     byte[] ipInBytes = ipAddress.getAddress().getAddress();
                     if(similarBytes(inputIpInBytes, ipInBytes) > Integer.MIN_VALUE) {
-                        InetAddress sourceIP = ipAddress.getAddress();
-                        MacAddress sourceMac = MacAddress.getByAddress(currentInterface.getLinkLayerAddresses().get(0).getAddress());
-                        return new NetworkParameter(currentInterface, sourceIP, sourceMac);
+                        InetAddress localIP = ipAddress.getAddress();
+                        MacAddress localMac = MacAddress.getByAddress(currentInterface.getLinkLayerAddresses().get(0).getAddress());
+                        return new NetworkParameter(currentInterface, localIP, localMac);
                     }
                 }
             }

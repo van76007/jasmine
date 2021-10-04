@@ -47,6 +47,6 @@ public class PingByHTTPTask extends NetworkTask {
 
     private boolean isHostReachable(String host) throws IOException {
         InetAddress address = InetAddress.getByName(host);
-        return address.isReachable((int) config.getTimeout());
+        return address.isReachable(config.getTimeout());
     }
 }

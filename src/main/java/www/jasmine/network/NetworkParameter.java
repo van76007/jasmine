@@ -9,28 +9,28 @@ public class NetworkParameter {
     // A network interface of this *host* that can communicate with the Internet through default gateway
     private PcapNetworkInterface nif;
     // IP of this *host*
-    private InetAddress sourceIP;
+    private InetAddress localIP;
     // The MAC of the *nif*
-    private MacAddress sourceMac;
+    private MacAddress localMac;
     // The MAC of the default gateway
     private MacAddress defaultGatewayMac;
 
-    public NetworkParameter(PcapNetworkInterface nif, InetAddress sourceIP, MacAddress sourceMac) {
+    public NetworkParameter(PcapNetworkInterface nif, InetAddress localIP, MacAddress localMac) {
         this.nif = nif;
-        this.sourceIP = sourceIP;
-        this.sourceMac = sourceMac;
+        this.localIP = localIP;
+        this.localMac = localMac;
     }
 
     public PcapNetworkInterface getNif() {
         return nif;
     }
 
-    public InetAddress getSourceIP() {
-        return sourceIP;
+    public InetAddress getLocalIP() {
+        return localIP;
     }
 
-    public MacAddress getSourceMac() {
-        return sourceMac;
+    public MacAddress getLocalMac() {
+        return localMac;
     }
 
     public MacAddress getDefaultGatewayMac() {
@@ -45,8 +45,8 @@ public class NetworkParameter {
     public String toString() {
         return "NetworkParameter{" +
                 "nif=" + (nif == null ? "null" : nif.toString()) +
-                ", sourceIP=" + (sourceIP == null ? "null" : sourceIP.toString()) +
-                ", sourceMac=" + (sourceMac == null ? "null" : sourceMac.toString()) +
+                ", sourceIP=" + (localIP == null ? "null" : localIP.toString()) +
+                ", sourceMac=" + (localMac == null ? "null" : localMac.toString()) +
                 ", defaultGatewayMac=" + (defaultGatewayMac == null ? "null" : defaultGatewayMac.toString()) +
                 '}';
     }
