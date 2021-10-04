@@ -13,7 +13,15 @@ public class Report {
         return host;
     }
 
+    public void setHost(String host) {
+        this.host = host;
+    }
+
     public String getMessage() {
         return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 }
