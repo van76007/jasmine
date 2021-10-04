@@ -11,12 +11,13 @@ public class ConfigLoader {
             Properties prop = new Properties();
             prop.load(input);
             Long delay = Long.parseLong(prop.getProperty("delay"));
+            Long shutdownPeriod = Long.parseLong(prop.getProperty("shutdown.period"));
             String command = prop.getProperty("command");
             String reportUrl = prop.getProperty("report.url");
             PingConfig pingConfig = new PingConfig(Integer.parseInt(prop.getProperty("ping.count")), Integer.parseInt(prop.getProperty("ping.timeout")), reportUrl);
             TracertConfig tracertConfig = new TracertConfig(Integer.parseInt(prop.getProperty("tracert.timeout")), reportUrl);
             String[] hosts = new String[] { prop.getProperty("host.site1"), prop.getProperty("host.site2") };
-            return new AppConfig(pingConfig, tracertConfig, hosts, command, delay);
+            return new AppConfig(pingConfig, tracertConfig, hosts, command, delay, shutdownPeriod);
         }
     }
 }

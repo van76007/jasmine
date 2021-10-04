@@ -5,19 +5,16 @@ import www.jasmine.task.PingByHTTPTask;
 import www.jasmine.task.PingByICMPTask;
 import www.jasmine.task.TracertTask;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.logging.Logger;
 
 public class Processor {
-    private final static long SHUTDOWN_AFTER_PERIOD = 10; // seconds
     AppConfig appConfig;
     Command command;
     Logger logger = SingletonLogger.SingletonLogger().logger;
     ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-    ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
+    ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+    ExecutorService executorForWorkers = Executors.newFixedThreadPool(4);
 
     public Processor(AppConfig appConfig) {
         this.appConfig = appConfig;
@@ -31,21 +28,15 @@ public class Processor {
         switch (command) {
             case PING_ICMP:
                 final PingByICMPTask pingByICMPTask = new PingByICMPTask(appConfig.getHosts(), appConfig.getPingConfig());
-                runPeriodicTaskThenStop(() -> {
-                    pingByICMPTask.run();
-                }, appConfig.getDelay());
+                runPeriodicTaskThenStop(pingByICMPTask::run, appConfig.getDelay());
                 break;
             case PING_HTTP:
-                final PingByHTTPTask pingByHTTPTask = new PingByHTTPTask(appConfig.getHosts(), appConfig.getPingConfig());
-                runPeriodicTaskThenStop(() -> {
-                    pingByHTTPTask.run();
-                }, appConfig.getDelay());
+                final PingByHTTPTask pingByHTTPTask = new PingByHTTPTask(appConfig.getHosts(), appConfig.getPingConfig(), executorForWorkers);
+                runPeriodicTaskThenStop(pingByHTTPTask::run, appConfig.getDelay());
                 break;
             case TRACERT:
                 final TracertTask tracertTask = new TracertTask(appConfig.getHosts(), appConfig.getTracertConfig());
-                runPeriodicTaskThenStop(() -> {
-                    tracertTask.run();
-                }, appConfig.getDelay());
+                runPeriodicTaskThenStop(tracertTask::run, appConfig.getDelay());
                 break;
             default:
                 logger.warning("Unhandled command: " + command.name());
@@ -69,7 +60,8 @@ public class Processor {
         executor.schedule(() -> {
             resultFuture.cancel(true);
             executorService.shutdown();
-        }, SHUTDOWN_AFTER_PERIOD, TimeUnit.SECONDS);
+            executorForWorkers.shutdown();
+        }, appConfig.getShutdownPeriod(), TimeUnit.SECONDS);
         executor.shutdown();
     }
 }
