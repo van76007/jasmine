@@ -7,14 +7,17 @@ import www.jasmine.report.Report;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
 
 public class PingByHTTPTask extends NetworkTask {
     PingConfig config;
+    ExecutorService executor;
 
-    public PingByHTTPTask(String[] hosts, PingConfig config) {
+    public PingByHTTPTask(String[] hosts, PingConfig config, ExecutorService executor) {
         super(hosts);
         this.config = config;
         this.command = Command.PING_HTTP;
+        this.executor = executor;
     }
 
     @Override
@@ -32,9 +35,7 @@ public class PingByHTTPTask extends NetworkTask {
                 long delay = (System.nanoTime() - tStart) / 1000000;
                 report(new Report(host, String.format("is reachable %s in %d ms", isReachable, delay)));
             };
-
-            Thread thread = new Thread(runnable);
-            thread.start();
+            this.executor.submit(runnable);
         }
     }
 
