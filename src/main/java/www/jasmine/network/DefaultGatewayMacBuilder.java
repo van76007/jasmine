@@ -53,12 +53,16 @@ public class DefaultGatewayMacBuilder {
         } catch(PcapNativeException | NotOpenException | IOException e) {
             e.printStackTrace();
         } finally {
-            if (executor != null) {
-                executor.shutdown();
-            }
+            closeExecutor(executor);
             closeHandler(receiveHandle);
         }
         return defaultGatewayMac;
+    }
+
+    private void closeExecutor(ExecutorService executor) {
+        if (executor != null && !executor.isShutdown()) {
+            executor.shutdown();
+        }
     }
 
     private void closeHandler(PcapHandle handler) {
