@@ -26,6 +26,7 @@ public class Main {
             processor.run();
         } catch (IOException | NumberFormatException e) {
             e.printStackTrace();
+            logger.severe(e.getMessage());
         }
     }
 }

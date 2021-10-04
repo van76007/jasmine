@@ -30,6 +30,7 @@ public class PingByHTTPTask extends NetworkTask {
                 try {
                     isReachable = isHostReachable(host);
                 } catch(IOException e) {
+                    logger.severe(e.getMessage());
                     isReachable = false;
                 }
                 long delay = (System.nanoTime() - tStart) / 1000000;
