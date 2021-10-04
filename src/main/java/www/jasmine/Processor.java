@@ -66,11 +66,9 @@ public class Processor {
     private void runPeriodicTaskThenStop(Runnable runnableTask, Long delay) {
         Future resultFuture = executorService
                 .scheduleAtFixedRate(runnableTask, 0, delay, TimeUnit.MILLISECONDS);
-        executor.schedule(new Runnable(){
-            public void run(){
-                resultFuture.cancel(true);
-                executorService.shutdown();
-            }
+        executor.schedule(() -> {
+            resultFuture.cancel(true);
+            executorService.shutdown();
         }, SHUTDOWN_AFTER_PERIOD, TimeUnit.SECONDS);
         executor.shutdown();
     }
