@@ -2,6 +2,7 @@ package www.jasmine.task;
 
 import www.jasmine.Command;
 import www.jasmine.config.PingConfig;
+import www.jasmine.report.Report;
 
 import java.util.Arrays;
 
@@ -16,12 +17,11 @@ public class PingByICMPTask extends NetworkTask {
 
     @Override
     public void run() {
-        System.out.println("To run: " + command.name() + " with config timeout: " + config.getTimeout());
-        System.out.println("On hosts: " + Arrays.toString(hosts));
+        logger.info(String.format("To run: %s on hosts: %s with config timeout %d ms", command.name(), Arrays.toString(hosts), config.getTimeout()));
     }
 
     @Override
-    void report() {
-        System.out.println("To report to: " + config.getReportURL());
+    void report(Report report) {
+        logger.info(String.format("To report to: %s about host: %s data: %s", config.getReportURL(), report.getHost(), report.getMessage()));
     }
 }
