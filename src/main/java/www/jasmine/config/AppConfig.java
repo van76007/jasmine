@@ -4,10 +4,9 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 public class AppConfig {
-    public AppConfig(PingConfig pingConfig, TracertConfig tracertConfig, ReportConfig reportConfig, HostConfig[] hosts, String command) {
+    public AppConfig(PingConfig pingConfig, TracertConfig tracertConfig, HostConfig[] hosts, String command) {
         this.pingConfig = pingConfig;
         this.tracertConfig = tracertConfig;
-        this.reportConfig = reportConfig;
         this.hosts = hosts;
         this.command = command;
     }
@@ -20,10 +19,6 @@ public class AppConfig {
         return tracertConfig;
     }
 
-    public ReportConfig getReportConfig() {
-        return reportConfig;
-    }
-
     public HostConfig[] getHosts() {
         return hosts;
     }
@@ -32,7 +27,6 @@ public class AppConfig {
 
     PingConfig pingConfig;
     TracertConfig tracertConfig;
-    ReportConfig reportConfig;
     HostConfig[] hosts;
     String command;
 
@@ -41,10 +35,8 @@ public class AppConfig {
         return "AppConfig{" +
                 "pingConfig=" + pingConfig +
                 ", tracertConfig=" + tracertConfig +
-                ", reportConfig=" + reportConfig +
                 ", hosts=" + Arrays.stream(hosts).map(HostConfig::toString).collect(Collectors.joining(", ")) +
                 ", command='" + command + '\'' +
                 '}';
     }
-
 }

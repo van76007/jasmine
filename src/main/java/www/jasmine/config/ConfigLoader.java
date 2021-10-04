@@ -11,13 +11,13 @@ public class ConfigLoader {
             Properties prop = new Properties();
             prop.load(input);
             String command = prop.getProperty("command");
-            PingConfig pingConfig = new PingConfig(Integer.parseInt(prop.getProperty("ping.count")), Integer.parseInt(prop.getProperty("ping.delay")));
-            TracertConfig tracertConfig = new TracertConfig(Integer.parseInt(prop.getProperty("tracert.delay")));
-            ReportConfig reportConfig = new ReportConfig(prop.getProperty("report.url"));
+            String reportUrl = prop.getProperty("report.url");
+            PingConfig pingConfig = new PingConfig(Integer.parseInt(prop.getProperty("ping.count")), Integer.parseInt(prop.getProperty("ping.delay")), reportUrl);
+            TracertConfig tracertConfig = new TracertConfig(Integer.parseInt(prop.getProperty("tracert.delay")), reportUrl);
             HostConfig[] hosts = new HostConfig[] {
               new HostConfig(prop.getProperty("host.site1")), new HostConfig(prop.getProperty("host.site2"))
             };
-            return new AppConfig(pingConfig, tracertConfig, reportConfig, hosts, command);
+            return new AppConfig(pingConfig, tracertConfig, hosts, command);
         }
     }
 }

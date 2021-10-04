@@ -2,19 +2,25 @@ package www.jasmine.config;
 
 public class PingConfig {
     int count;
-    int delay;
+    long delay;
+    String reportURL;
 
-    public PingConfig(int count, int delay) {
+    public PingConfig(int count, int delay, String reportURL) {
         this.count = count;
         this.delay = delay;
+        this.reportURL = reportURL;
     }
 
     public int getCount() {
         return count;
     }
 
-    public int getDelay() {
+    public long getDelay() {
         return delay;
+    }
+
+    public String getReportURL() {
+        return reportURL;
     }
 
     @Override
@@ -22,6 +28,7 @@ public class PingConfig {
         return "PingConfig{" +
                 "count=" + count +
                 ", delay=" + delay +
+                ", reportURL='" + reportURL + '\'' +
                 '}';
     }
 }
