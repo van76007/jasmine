@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static www.jasmine.network.NetworkConstants.*;
 
+// ToDo: Abstract the flow send/receive/post-processing packet in the code
 public class DefaultGatewayMacBuilder {
     public MacAddress buildDefaultGatewayMac(NetworkParameter parameter) {
         MacAddress defaultGatewayMac = null;
@@ -26,12 +27,9 @@ public class DefaultGatewayMacBuilder {
             receiveHandle.setFilter("tcp and dst host " + parameter.getSourceIP().getHostAddress(), BpfProgram.BpfCompileMode.OPTIMIZE);
 
             final AtomicReference<Packet> pRef = new AtomicReference<>();
-            PacketListener listener = new PacketListener() {
-                @Override
-                public void gotPacket(Packet packet) {
-                    if(packet.contains(EthernetPacket.class)) {
-                        pRef.set(packet);
-                    }
+            PacketListener listener = packet -> {
+                if (packet.contains(EthernetPacket.class)) {
+                    pRef.set(packet);
                 }
             };
 
