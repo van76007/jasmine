@@ -13,8 +13,6 @@ import java.net.UnknownHostException;
 import java.util.List;
 
 public class NetworkParameterBuilder {
-    DefaultGatewayMacBuilder builder = new DefaultGatewayMacBuilder();
-
     public NetworkParameter buildNetworkParameter() {
         NetworkParameter parameter = null;
         try {
@@ -26,7 +24,8 @@ public class NetworkParameterBuilder {
             parameter = getLocalNetworkInterfaceParameter(InetAddress.getByName(InetAddress.getLocalHost().getHostAddress()));
             if (parameter != null) {
                 // 2. Find default gateway MAC
-                MacAddress defaultGatewayMac = builder.buildDefaultGatewayMac(parameter);
+                DefaultGatewayMacBuilder builder = new DefaultGatewayMacBuilder(parameter);
+                MacAddress defaultGatewayMac = builder.buildDefaultGatewayMac();
                 parameter.setDefaultGatewayMac(defaultGatewayMac);
             }
         } catch (UnknownHostException e) {

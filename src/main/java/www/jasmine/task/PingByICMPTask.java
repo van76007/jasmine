@@ -14,14 +14,14 @@ import java.util.concurrent.ExecutorService;
 public class PingByICMPTask extends NetworkTask {
     PingConfig config;
     ExecutorService executor;
-    NetworkParameter networkParameter;
+    NetworkParameter parameter;
 
     public PingByICMPTask(String[] hosts, PingConfig config, ExecutorService executor, NetworkParameter networkParameter) {
         super(hosts);
         this.config = config;
         this.command = Command.PING_ICMP;
         this.executor = executor;
-        this.networkParameter = networkParameter;
+        this.parameter = networkParameter;
     }
 
     @Override
@@ -31,8 +31,8 @@ public class PingByICMPTask extends NetworkTask {
             Runnable runnable = () -> {
                 Report report = null;
                 try {
-                    InetAddress hostInetAddress = InetAddress.getByName(host);
-                    Ping ping = new Ping(networkParameter, hostInetAddress, config);
+                    InetAddress remoteInetAddress = InetAddress.getByName(host);
+                    Ping ping = new Ping(parameter, remoteInetAddress, config);
                     report = ping.pingByICMP();
                 } catch (UnknownHostException e) {
                     e.printStackTrace();

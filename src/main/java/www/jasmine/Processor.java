@@ -28,8 +28,8 @@ public class Processor {
             return false;
         }
         NetworkParameterBuilder builder = new NetworkParameterBuilder();
-        // ToDo: Use this parameter in the tasks
         NetworkParameter networkParameter = builder.buildNetworkParameter();
+
         switch (command) {
             case PING_ICMP:
                 final PingByICMPTask pingByICMPTask = new PingByICMPTask(appConfig.getHosts(), appConfig.getPingConfig(), executorForWorkers, networkParameter);
