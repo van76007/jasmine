@@ -14,7 +14,6 @@ import static www.jasmine.network.NetworkConstants.*;
 
 public abstract class AbstractNetworkTask {
     NetworkParameter parameter;
-
     PcapHandle receiveHandle = null;
     PcapHandle sendHandle = null;
     String bpfExpression;

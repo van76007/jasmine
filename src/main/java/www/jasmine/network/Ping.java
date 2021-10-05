@@ -80,8 +80,18 @@ public class Ping extends AbstractNetworkTask {
                 e.printStackTrace();
             }
         }
+        IcmpV4EchoPacket.Builder echoBuilder = getIcmpEchoPacketBuilder((short) count);
+        IcmpV4CommonPacket.Builder icmpV4CommonBuilder = getIcmpPacketBuilder(echoBuilder);
+        IpV4Packet.Builder ipV4Builder = getIpPacketBuilder((short) count, (Inet4Address) srcIpAddress, (Inet4Address) dstIpAddress, icmpV4CommonBuilder);
+        EthernetPacket.Builder etherBuilder = getEthernetPacketBuilder(srcMacAddress, dstMacAddress, ipV4Builder);
 
-        // ToDo: Extract to private function to build packet
+        Packet p = etherBuilder.build();
+        long tStart = System.nanoTime();
+        sendHandle.sendPacket(p);
+        return tStart;
+    }
+
+    private IcmpV4EchoPacket.Builder getIcmpEchoPacketBuilder(short count) {
         byte[] echoData = new byte[48];
         for (int i = 0; i < echoData.length; i++) {
             echoData[i] = (byte) i;
@@ -89,47 +99,46 @@ public class Ping extends AbstractNetworkTask {
 
         IcmpV4EchoPacket.Builder echoBuilder = new IcmpV4EchoPacket.Builder();
         echoBuilder
-                .identifier((short) count)
-                .sequenceNumber((short) count)
+                .identifier(count)
+                .sequenceNumber(count)
                 .payloadBuilder(new UnknownPacket.Builder().rawData(echoData));
+        return echoBuilder;
+    }
 
+    private IcmpV4CommonPacket.Builder getIcmpPacketBuilder(IcmpV4EchoPacket.Builder echoBuilder) {
         IcmpV4CommonPacket.Builder icmpV4CommonBuilder = new IcmpV4CommonPacket.Builder();
         icmpV4CommonBuilder
                 .type(IcmpV4Type.ECHO)
                 .code(IcmpV4Code.NO_CODE)
                 .payloadBuilder(echoBuilder)
                 .correctChecksumAtBuild(true);
-
+        return icmpV4CommonBuilder;
+    }
+    // ToDo: Tracert should pass TTL parameter
+    private IpV4Packet.Builder getIpPacketBuilder(short count, Inet4Address srcIpAddress, Inet4Address dstIpAddress, IcmpV4CommonPacket.Builder icmpV4CommonBuilder) {
         IpV4Packet.Builder ipV4Builder = new IpV4Packet.Builder();
         ipV4Builder
                 .version(IpVersion.IPV4)
                 .tos(IpV4Rfc791Tos.newInstance((byte) 0))
                 .ttl((byte) 100)
-                .identification((short) count)
+                .identification(count)
                 .protocol(IpNumber.ICMPV4)
-                .srcAddr((Inet4Address) srcIpAddress)
-                .dstAddr((Inet4Address) dstIpAddress)
+                .srcAddr(srcIpAddress)
+                .dstAddr(dstIpAddress)
                 .payloadBuilder(icmpV4CommonBuilder)
                 .correctChecksumAtBuild(true)
                 .correctLengthAtBuild(true);
+        return ipV4Builder;
+    }
 
+    private EthernetPacket.Builder getEthernetPacketBuilder(MacAddress srcMacAddress, MacAddress dstMacAddress, IpV4Packet.Builder ipV4Builder) {
         EthernetPacket.Builder etherBuilder = new EthernetPacket.Builder();
         etherBuilder
                 .dstAddr(dstMacAddress)
                 .srcAddr(srcMacAddress)
                 .type(EtherType.IPV4)
+                .payloadBuilder(ipV4Builder)
                 .paddingAtBuild(true);
-
-        etherBuilder.payloadBuilder(
-                new AbstractPacket.AbstractBuilder() {
-                    @Override
-                    public Packet build() {
-                        return ipV4Builder.build();
-                    }
-                });
-        Packet p = etherBuilder.build();
-        long tStart = System.nanoTime();
-        sendHandle.sendPacket(p);
-        return tStart;
+        return etherBuilder;
     }
 }
