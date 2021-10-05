@@ -33,7 +33,7 @@ public class PingByICMPTask extends NetworkTask {
                 try {
                     InetAddress remoteInetAddress = InetAddress.getByName(host);
                     Ping ping = new Ping(parameter, remoteInetAddress, config);
-                    report = ping.pingByICMP();
+                    report = ping.ping();
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
                 }

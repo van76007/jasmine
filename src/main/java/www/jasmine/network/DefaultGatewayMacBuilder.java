@@ -5,8 +5,10 @@ import org.pcap4j.core.PcapNativeException;
 import org.pcap4j.packet.EthernetPacket;
 import org.pcap4j.packet.Packet;
 import org.pcap4j.util.MacAddress;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URL;
 
 public class DefaultGatewayMacBuilder extends AbstractNetworkTask {
@@ -20,7 +22,7 @@ public class DefaultGatewayMacBuilder extends AbstractNetworkTask {
         MacAddress defaultGatewayMac = null;
         try {
             setupPacketHandlers();
-            ReceivedPacket receivedPacket = sendAndReceivePacket(1);
+            ReceivedPacket receivedPacket = sendAndReceivePacket(null);
             Packet packet = receivedPacket.getPacket();
             if (packet != null) {
                 EthernetPacket p = packet.get(EthernetPacket.class);
@@ -36,7 +38,7 @@ public class DefaultGatewayMacBuilder extends AbstractNetworkTask {
     }
 
     @Override
-    protected long sendPacket(int count) {
+    protected long sendPacket(Packet packet) {
         long start = System.nanoTime();
         try {
             sendHTTPRequest();
@@ -44,6 +46,11 @@ public class DefaultGatewayMacBuilder extends AbstractNetworkTask {
             e.printStackTrace();
         }
         return start;
+    }
+
+    @Override
+    protected Packet buildPacket(int count, int ttl, NetworkParameter parameter, InetAddress dstIpAddress) {
+        throw new NotImplementedException();
     }
 
     private void sendHTTPRequest() throws IOException {

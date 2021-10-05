@@ -4,6 +4,7 @@ import org.pcap4j.core.*;
 import org.pcap4j.packet.EthernetPacket;
 import org.pcap4j.packet.Packet;
 
+import java.net.InetAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -25,11 +26,12 @@ public abstract class AbstractNetworkTask {
         this.parameter = parameter;
     }
 
-    protected ReceivedPacket sendAndReceivePacket(int count) {
+    protected ReceivedPacket sendAndReceivePacket(Packet packet) {
         Task receiveTask = new Task(receiveHandle, listener, 1);
         Future receiveFuture = executor.submit(receiveTask);
 
-        long start = sendPacket(count);
+        // Packet packet = buildPacket(count, ttl, parameter, InetAddress dstIpAddress);
+        long start = sendPacket(packet);
         try {
             receiveFuture.get(WAIT_FOR_RESPONSE_TIMEOUT, TimeUnit.MILLISECONDS);
         }
@@ -37,11 +39,12 @@ public abstract class AbstractNetworkTask {
             e.printStackTrace();
         }
         long delay = (System.nanoTime() - start) / 1000000;
-        Packet packet = pRef.get();
-        return new ReceivedPacket(packet, delay);
+        return new ReceivedPacket(pRef.get(), delay);
     }
 
-    protected abstract long sendPacket(int count);
+    protected abstract long sendPacket(Packet packet);
+
+    protected abstract Packet buildPacket(int count, int ttl, NetworkParameter parameter, InetAddress dstIpAddress);
 
     protected void closeExecutor(ExecutorService executor) {
         if (executor != null && !executor.isShutdown()) {
