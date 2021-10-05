@@ -23,7 +23,7 @@ public class Tracert extends Ping {
 
     @Override
     protected ProcessPacketResult getProcessPacketResult() {
-        return new ProcessPacketResult(false, 0, 0);
+        return new ProcessPacketResult(false, 0, 1);
     }
 
     @Override
@@ -49,7 +49,7 @@ public class Tracert extends Ping {
             if (packet.contains(IcmpV4TimeExceededPacket.class)) {
                 processPacketResult.setLastResult(false);
                 int count = processPacketResult.getCount();
-                processPacketResult.setTtl((count - count % config.getNumberOfProbes()) / config.getNumberOfProbes());
+                processPacketResult.setTtl((count - count % config.getNumberOfProbes()) / config.getNumberOfProbes() + 1);
 
                 IpV4Packet p = packet.get(IpV4Packet.class);
                 InetAddress hopAddress = p.getHeader().getSrcAddr();
@@ -63,8 +63,16 @@ public class Tracert extends Ping {
                 int ttl = processPacketResult.getTtl();
                 IpV4Packet p = packet.get(IpV4Packet.class);
                 InetAddress hopAddress = p.getHeader().getSrcAddr();
-                System.out.println("Got IcmpV4DestinationUnreachablePacket or IcmpV4EchoReplyPacket hopAddress.getHostName(): " + hopAddress.getHostName());
-                System.out.println("Got IcmpV4DestinationUnreachablePacket or IcmpV4EchoReplyPacket hopAddress.getHostAddress(): " + hopAddress.getHostAddress());
+
+                if (packet.contains(IcmpV4DestinationUnreachablePacket.class)) {
+                    System.out.println("Got IcmpV4DestinationUnreachablePacket: " + hopAddress.getHostName());
+                    System.out.println("Got IcmpV4DestinationUnreachablePacket: " + hopAddress.getHostAddress());
+
+                }
+                if (packet.contains(IcmpV4EchoReplyPacket.class)) {
+                    System.out.println("Got IcmpV4EchoReplyPacket: " + hopAddress.getHostName());
+                    System.out.println("Got IcmpV4EchoReplyPacket: " + hopAddress.getHostAddress());
+                }
                 reportMessage = String.format("%d %s (%s) %d ms", ttl + 1, hopAddress.getHostName(), hopAddress.getHostAddress(), receivedPacket.getDelay());
             }
         } else {
