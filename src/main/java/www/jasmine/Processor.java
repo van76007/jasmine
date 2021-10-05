@@ -40,7 +40,7 @@ public class Processor {
                 runPeriodicTaskThenStop(pingByHTTPTask::run, appConfig.getDelay());
                 break;
             case TRACERT:
-                final TracertTask tracertTask = new TracertTask(appConfig.getHosts(), appConfig.getTracertConfig());
+                final TracertTask tracertTask = new TracertTask(appConfig.getHosts(), appConfig.getTracertConfig(), executorForWorkers, networkParameter);
                 runPeriodicTaskThenStop(tracertTask::run, appConfig.getDelay());
                 break;
             default:

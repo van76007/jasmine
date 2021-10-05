@@ -12,10 +12,18 @@ public class ConfigLoader {
             prop.load(input);
             Long delay = Long.parseLong(prop.getProperty("delay"));
             Long shutdownPeriod = Long.parseLong(prop.getProperty("shutdown.period"));
+
             String command = prop.getProperty("command");
             String reportUrl = prop.getProperty("report.url");
-            PingConfig pingConfig = new PingConfig(Integer.parseInt(prop.getProperty("ping.count")), Integer.parseInt(prop.getProperty("ping.timeout")), Long.parseLong(prop.getProperty("ping.wait")), reportUrl);
-            TracertConfig tracertConfig = new TracertConfig(Integer.parseInt(prop.getProperty("tracert.timeout")), reportUrl);
+            int pingCount = Integer.parseInt(prop.getProperty("ping.count"));
+            int pingTimeout = Integer.parseInt(prop.getProperty("ping.timeout"));
+            long pingWait = Long.parseLong(prop.getProperty("ping.wait"));
+            long tracertPause = Long.parseLong(prop.getProperty("tracert.pause"));
+            int tracertMaxTTL = Integer.parseInt(prop.getProperty("tracert.maxTtl"));
+            int tracertNumberOfProbes = Integer.parseInt(prop.getProperty("tracert.numberOfProbes"));
+            PingConfig pingConfig = new PingConfig(pingCount, pingTimeout, pingWait, reportUrl);
+
+            TracertConfig tracertConfig = new TracertConfig(tracertPause, tracertMaxTTL, tracertNumberOfProbes, reportUrl);
             String[] hosts = new String[] { prop.getProperty("host.site1"), prop.getProperty("host.site2") };
             return new AppConfig(pingConfig, tracertConfig, hosts, command, delay, shutdownPeriod);
         }

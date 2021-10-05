@@ -1,16 +1,28 @@
 package www.jasmine.config;
 
 public class TracertConfig {
-    long timeout;
+    long pause;
+    int maxTtl;
+    int numberOfProbes;
     String reportURL;
 
-    public TracertConfig(int timeout, String reportURL) {
-        this.timeout = timeout;
+    public TracertConfig(long pause, int maxTtl, int numberOfProbes, String reportURL) {
+        this.pause = pause;
+        this.maxTtl = maxTtl;
+        this.numberOfProbes = numberOfProbes;
         this.reportURL = reportURL;
     }
 
-    public long getTimeout() {
-        return timeout;
+    public long getPause() {
+        return pause;
+    }
+
+    public int getMaxTtl() {
+        return maxTtl;
+    }
+
+    public int getNumberOfProbes() {
+        return numberOfProbes;
     }
 
     public String getReportURL() {
@@ -20,7 +32,9 @@ public class TracertConfig {
     @Override
     public String toString() {
         return "TracertConfig{" +
-                "timeout=" + timeout +
+                "pause=" + pause +
+                ", maxTtl=" + maxTtl +
+                ", numberOfProbes=" + numberOfProbes +
                 ", reportURL='" + reportURL + '\'' +
                 '}';
     }

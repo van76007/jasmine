@@ -45,9 +45,14 @@ public class Ping extends AbstractNetworkTask {
         return report;
     }
 
+    protected ProcessPacketResult getProcessPacketResult() {
+        return new ProcessPacketResult(false, 0, 100);
+    }
+
     private String loop() {
-        ProcessPacketResult processPacketResult = new ProcessPacketResult(false, 0, 100);
-        while(continueSendingPacket(processPacketResult)) {
+        ProcessPacketResult processPacketResult = getProcessPacketResult();
+        while(shouldSendPacket(processPacketResult)) {
+            System.out.println("ProcessPacketResult: " + processPacketResult.toString());
             Packet packet = buildPacket(processPacketResult.getCount(), processPacketResult.getTtl(), parameter, remoteInetAddress);
             if (processPacketResult.getCount() > 0) {
                 pause();
@@ -66,8 +71,8 @@ public class Ping extends AbstractNetworkTask {
         }
     }
 
-    protected boolean continueSendingPacket(ProcessPacketResult processPacketResult) {
-        return !processPacketResult.isStop() && processPacketResult.getCount() < config.getCount();
+    protected boolean shouldSendPacket(ProcessPacketResult processPacketResult) {
+        return !processPacketResult.isLastResult() && processPacketResult.getCount() < config.getCount();
     }
 
     protected void processReceivedPacket(ReceivedPacket receivedPacket, ProcessPacketResult processPacketResult) {
@@ -82,7 +87,7 @@ public class Ping extends AbstractNetworkTask {
                         p.getHeader().getTtl(), receivedPacket.getDelay());
             }
         }
-        processPacketResult.setStop(false);
+        processPacketResult.setLastResult(false);
         processPacketResult.increaseCount(1);
         processPacketResult.increaseTtl(1);
         processPacketResult.setReportMessage(message);
