@@ -1,6 +1,8 @@
 package www.jasmine.network;
 
-import org.pcap4j.core.*;
+import org.pcap4j.core.NotOpenException;
+import org.pcap4j.core.PcapNativeException;
+import org.pcap4j.core.Pcaps;
 import org.pcap4j.packet.*;
 import org.pcap4j.packet.namednumber.*;
 import org.pcap4j.util.MacAddress;
@@ -9,39 +11,25 @@ import www.jasmine.report.Report;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
-import static www.jasmine.network.NetworkConstants.*;
-
-public class Ping {
-    NetworkParameter networkParameter;
-    InetAddress hostInetAddress;
+public class Ping extends AbstractNetworkTask {
     PingConfig config;
+    InetAddress remoteInetAddress;
 
-    PcapHandle receiveHandle = null;
-    PcapHandle sendHandle = null;
-    ExecutorService executor = Executors.newSingleThreadExecutor();
-
-    public Ping(NetworkParameter networkParameter, InetAddress hostInetAddress, PingConfig config) throws UnknownHostException {
-        this.networkParameter = networkParameter;
-        this.hostInetAddress = hostInetAddress;
+    public Ping(NetworkParameter parameter, InetAddress remoteInetAddress, PingConfig config) {
+        super(parameter);
         this.config = config;
+        this.remoteInetAddress = remoteInetAddress;
+        this.bpfExpression = "icmp and ether dst " + Pcaps.toBpfString(parameter.getLocalMac()) + " and src host " + remoteInetAddress.getHostAddress();
     }
 
     public Report pingByICMP() {
         Report report = null;
         try {
-            PcapNetworkInterface nif = networkParameter.getNif();
-            receiveHandle = nif.openLive(SNAPLEN, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, READ_TIMEOUT);
-            receiveHandle.setFilter("icmp and ether dst " + Pcaps.toBpfString(networkParameter.getLocalMac()) + " and src host " + hostInetAddress.getHostAddress(), BpfProgram.BpfCompileMode.OPTIMIZE);
-            sendHandle = nif.openLive(SNAPLEN, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, READ_TIMEOUT);
-            String reportMessage = loop(receiveHandle, sendHandle, executor);
-            report = new Report(hostInetAddress.getHostAddress(), reportMessage == null ? String.format("Request timeout for icmp_seq %d", config.getCount()) : reportMessage);
+            setupPacketHandlers();
+            String reportMessage = loop();
+            report = new Report(remoteInetAddress.getHostAddress(),
+                    reportMessage == null ? String.format("Request timeout for icmp_seq %d", config.getCount()) : reportMessage);
         } catch(PcapNativeException | NotOpenException e) {
             e.printStackTrace();
         } finally {
@@ -51,38 +39,19 @@ public class Ping {
         return report;
     }
 
-    private String loop(PcapHandle receiveHandle, PcapHandle sendHandle, ExecutorService executor) throws PcapNativeException, NotOpenException {
+    private String loop() {
         String reportMessage = null;
-        final AtomicReference<Packet> pRef = new AtomicReference<>();
-        PacketListener listener = packet -> {
-            if (packet.contains(EthernetPacket.class)) {
-                pRef.set(packet);
-            }
-        };
         int count = 0;
-        while(count < this.config.getCount()) {
-            Task receiveTask = new Task(receiveHandle, listener, 1);
-            Future receiveFuture = executor.submit(receiveTask);
-
-            long tStart = sendICMPPacket(sendHandle, count++,
-                    networkParameter.getLocalMac(), networkParameter.getLocalIP(),
-                    networkParameter.getDefaultGatewayMac(), hostInetAddress);
-            try {
-                receiveFuture.get(WAIT_FOR_RESPONSE_TIMEOUT, TimeUnit.MILLISECONDS);
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
-            long tDelay = ( System.nanoTime() - tStart ) / 1000000;
-            Packet packet = pRef.get();
+        while(count < config.getCount()) {
+            ReceivedPacket receivedPacket = sendAndReceivePacket(count);
+            Packet packet = receivedPacket.getPacket();
             if (packet != null) {
                 if (packet.contains(IcmpV4EchoReplyPacket.class)) {
                     IpV4Packet p = packet.get(IpV4Packet.class);
                     IcmpV4EchoReplyPacket pp = packet.get(IcmpV4EchoReplyPacket.class);
-                    count++;
                     reportMessage = String.format("%d bytes from %s: icmp_seq=%d ttl=%d time=%d ms",
-                            pp.length(), hostInetAddress.getHostAddress(), pp.getHeader().getSequenceNumber(),
-                            p.getHeader().getTtl(), tDelay);
+                            pp.length(), remoteInetAddress.getHostAddress(), pp.getHeader().getSequenceNumber(),
+                            p.getHeader().getTtl(), receivedPacket.getDelay());
                 }
             }
             count++;
@@ -90,7 +59,20 @@ public class Ping {
         return reportMessage;
     }
 
-    private long sendICMPPacket(PcapHandle sendHandle, int count, MacAddress srcMacAddress, InetAddress srcIpAddress, MacAddress dstMacAddress, InetAddress dstIpAddress) throws PcapNativeException, NotOpenException {
+    @Override
+    protected long sendPacket(int count) {
+        long start = System.nanoTime();
+        try {
+            start = sendICMPPacket(count,
+                    parameter.getLocalMac(), parameter.getLocalIP(),
+                    parameter.getDefaultGatewayMac(), remoteInetAddress);
+        } catch (PcapNativeException | NotOpenException e) {
+            e.printStackTrace();
+        }
+        return start;
+    }
+
+    private long sendICMPPacket(int count, MacAddress srcMacAddress, InetAddress srcIpAddress, MacAddress dstMacAddress, InetAddress dstIpAddress) throws PcapNativeException, NotOpenException {
         if (count > 1) {
             try {
                 Thread.sleep(config.getWait());
@@ -99,6 +81,7 @@ public class Ping {
             }
         }
 
+        // ToDo: Extract to private function to build packet
         byte[] echoData = new byte[48];
         for (int i = 0; i < echoData.length; i++) {
             echoData[i] = (byte) i;
@@ -137,28 +120,6 @@ public class Ping {
                 .type(EtherType.IPV4)
                 .paddingAtBuild(true);
 
-        /*
-        long tStart = System.nanoTime();
-        for (final Packet ipV4Packet : IpV4Helper.fragment(ipV4Builder.build(), MTU)) {
-            etherBuilder.payloadBuilder(
-                    new AbstractPacket.AbstractBuilder() {
-                        @Override
-                        public Packet build() {
-                            return ipV4Packet;
-                        }
-                    });
-
-            Packet p = etherBuilder.build();
-            sendHandle.sendPacket(p);
-
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                break;
-            }
-        }
-         */
-
         etherBuilder.payloadBuilder(
                 new AbstractPacket.AbstractBuilder() {
                     @Override
@@ -170,28 +131,5 @@ public class Ping {
         long tStart = System.nanoTime();
         sendHandle.sendPacket(p);
         return tStart;
-    }
-
-    private void closeExecutor(ExecutorService executor) {
-        if (executor != null && !executor.isShutdown()) {
-            executor.shutdown();
-        }
-    }
-
-    private void closeHandler(PcapHandle handler) {
-        if (handler != null) {
-            try {
-                handler.breakLoop();
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
-            try {
-                handler.close();
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
     }
 }
