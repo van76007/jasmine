@@ -1,5 +1,6 @@
 package www.jasmine.network;
 
+// ToDo: Refactor
 public class ProcessPacketResult {
     private boolean isLastResult;
     private int count;

@@ -52,8 +52,7 @@ public class TraceRouteCommand extends PingCommand {
 
                 IpV4Packet p = packet.get(IpV4Packet.class);
                 InetAddress hopAddress = p.getHeader().getSrcAddr();
-                System.out.println("Got IcmpV4TimeExceededPacket hopAddress.getHostName(): " + hopAddress.getHostName());
-                System.out.println("Got IcmpV4TimeExceededPacket hopAddress.getHostAddress(): " + hopAddress.getHostAddress());
+                System.out.println("TRACEROUTE. Got IcmpV4TimeExceededPacket: " + hopAddress.getHostName() + " " + hopAddress.getHostAddress());
                 reportMessage = String.format("%d %s (%s) %d ms", processPacketResult.getTtl() + 1, hopAddress.getHostName(), hopAddress.getHostAddress(), receivedPacket.getDelay());
             }
 
@@ -64,13 +63,11 @@ public class TraceRouteCommand extends PingCommand {
                 InetAddress hopAddress = p.getHeader().getSrcAddr();
 
                 if (packet.contains(IcmpV4DestinationUnreachablePacket.class)) {
-                    System.out.println("Got IcmpV4DestinationUnreachablePacket: " + hopAddress.getHostName());
-                    System.out.println("Got IcmpV4DestinationUnreachablePacket: " + hopAddress.getHostAddress());
+                    System.out.println("TRACEROUTE. Got IcmpV4DestinationUnreachablePacket: " + hopAddress.getHostName() + " " + hopAddress.getHostAddress());
 
                 }
                 if (packet.contains(IcmpV4EchoReplyPacket.class)) {
-                    System.out.println("Got IcmpV4EchoReplyPacket: " + hopAddress.getHostName());
-                    System.out.println("Got IcmpV4EchoReplyPacket: " + hopAddress.getHostAddress());
+                    System.out.println("TRACEROUTE. Got IcmpV4EchoReplyPacket: " + hopAddress.getHostName() + " " + hopAddress.getHostAddress());
                 }
                 reportMessage = String.format("%d %s (%s) %d ms", ttl + 1, hopAddress.getHostName(), hopAddress.getHostAddress(), receivedPacket.getDelay());
             }

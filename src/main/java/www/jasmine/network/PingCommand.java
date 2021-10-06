@@ -85,10 +85,11 @@ public class PingCommand extends AbstractNetworkCommand {
                 IcmpV4EchoReplyPacket pp = packet.get(IcmpV4EchoReplyPacket.class);
 
                 InetAddress hopAddress = p.getHeader().getSrcAddr();
+                /*
                 System.out.println("Got IcmpV4EchoReplyPacket getHostName: " + hopAddress.getHostName()
                  + " getHostAddress: " + hopAddress.getHostAddress() + " icmp_seq: " + pp.getHeader().getSequenceNumberAsInt()
                  + " for this host: " + this.remoteInetAddress.toString());
-
+                */
                 message = String.format("%d bytes from %s: icmp_seq=%d ttl=%d time=%d ms",
                         pp.length(), remoteInetAddress.getHostAddress(), processPacketResult.getCount(),
                         p.getHeader().getTtl(), receivedPacket.getDelay());
