@@ -11,6 +11,7 @@ import www.jasmine.report.Report;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.util.Random;
 
 public class PingCommand extends AbstractNetworkCommand {
     PingConfig config;
@@ -50,15 +51,19 @@ public class PingCommand extends AbstractNetworkCommand {
     }
 
     private String loop() {
+        Random random = new Random();
+        short identifier = (short) random.nextInt(1 << 15);
+        System.out.println("COMMAND: " + this.getClass().getName() + "identifier: " + identifier);
+
         ProcessPacketResult processPacketResult = getProcessPacketResult();
         while(shouldSendPacket(processPacketResult)) {
             System.out.println("ProcessPacketResult: " + processPacketResult.toString());
-            Packet packet = buildPacket(processPacketResult.getCount(), processPacketResult.getTtl(), parameter, remoteInetAddress);
+            Packet packet = buildPacket(processPacketResult.getCount(), processPacketResult.getTtl(), identifier, parameter, remoteInetAddress);
             if (processPacketResult.getCount() > 0) {
                 pause();
             }
             ReceivedPacket receivedPacket = sendAndReceivePacket(packet);
-            processReceivedPacket(receivedPacket, processPacketResult);
+            processReceivedPacket(receivedPacket, processPacketResult, identifier);
         }
         System.out.println("LAST ProcessPacketResult: " + processPacketResult.toString());
         return processPacketResult.getReportMessage();
@@ -76,23 +81,25 @@ public class PingCommand extends AbstractNetworkCommand {
         return !processPacketResult.isLastResult() && processPacketResult.getCount() < config.getCount() + 1;
     }
 
-    protected void processReceivedPacket(ReceivedPacket receivedPacket, ProcessPacketResult processPacketResult) {
+    protected void processReceivedPacket(ReceivedPacket receivedPacket, ProcessPacketResult processPacketResult, short identifier) {
         String message = null;
         Packet packet = receivedPacket.getPacket();
         if (packet != null) {
             if (packet.contains(IcmpV4EchoReplyPacket.class)) {
-                IpV4Packet p = packet.get(IpV4Packet.class);
-                IcmpV4EchoReplyPacket pp = packet.get(IcmpV4EchoReplyPacket.class);
+                // ToDo: Consider only the ECHO packet that have the same identifier
+                //       E.g. check echo.getHeader().getIdentifier() == identifier
+                //       However, such check may be redundant as we already apply the BFP filter on the NIC
+                IpV4Packet ipPacket = packet.get(IpV4Packet.class);
+                IcmpV4EchoReplyPacket echo = packet.get(IcmpV4EchoReplyPacket.class);
 
-                InetAddress hopAddress = p.getHeader().getSrcAddr();
-                /*
-                System.out.println("Got IcmpV4EchoReplyPacket getHostName: " + hopAddress.getHostName()
-                 + " getHostAddress: " + hopAddress.getHostAddress() + " icmp_seq: " + pp.getHeader().getSequenceNumberAsInt()
-                 + " for this host: " + this.remoteInetAddress.toString());
-                */
+                InetAddress hopAddress = ipPacket.getHeader().getSrcAddr();
+                System.out.println("PING. Got IcmpV4EchoReplyPacket from: " + hopAddress.getHostName() + " my identifier: " + identifier
+                        + " their identifier: " + echo.getHeader().getIdentifier() + " icmp_seq: " + echo.getHeader().getSequenceNumberAsInt()
+                        + " for this host: " + remoteInetAddress.toString());
+
                 message = String.format("%d bytes from %s: icmp_seq=%d ttl=%d time=%d ms",
-                        pp.length(), remoteInetAddress.getHostAddress(), processPacketResult.getCount(),
-                        p.getHeader().getTtl(), receivedPacket.getDelay());
+                        echo.length(), remoteInetAddress.getHostAddress(), processPacketResult.getCount(),
+                        ipPacket.getHeader().getTtl(), receivedPacket.getDelay());
             }
         }
         processPacketResult.setLastResult(false);
@@ -113,26 +120,25 @@ public class PingCommand extends AbstractNetworkCommand {
     }
 
     @Override
-    protected Packet buildPacket(int count, int ttl, NetworkParameter parameter, InetAddress dstIpAddress) {
+    protected Packet buildPacket(int count, int ttl, short identifier, NetworkParameter parameter, InetAddress dstIpAddress) {
         MacAddress srcMacAddress = parameter.getLocalMac();
         MacAddress dstMacAddress = parameter.getDefaultGatewayMac();
         InetAddress srcIpAddress = parameter.getLocalIP();
-        IcmpV4EchoPacket.Builder echoBuilder = getIcmpEchoPacketBuilder((short) count);
+        IcmpV4EchoPacket.Builder echoBuilder = getIcmpEchoPacketBuilder((short) count, identifier);
         IcmpV4CommonPacket.Builder icmpV4CommonBuilder = getIcmpPacketBuilder(echoBuilder);
         IpV4Packet.Builder ipV4Builder = getIpPacketBuilder((short) count, ttl, (Inet4Address) srcIpAddress, (Inet4Address) dstIpAddress, icmpV4CommonBuilder);
         EthernetPacket.Builder etherBuilder = getEthernetPacketBuilder(srcMacAddress, dstMacAddress, ipV4Builder);
         return etherBuilder.build();
     }
 
-    private IcmpV4EchoPacket.Builder getIcmpEchoPacketBuilder(short count) {
+    private IcmpV4EchoPacket.Builder getIcmpEchoPacketBuilder(short count, short identifier) {
         byte[] echoData = new byte[48];
         for (int i = 0; i < echoData.length; i++) {
             echoData[i] = (byte) i;
         }
-
         IcmpV4EchoPacket.Builder echoBuilder = new IcmpV4EchoPacket.Builder();
         echoBuilder
-                .identifier(count)
+                .identifier(identifier)
                 .sequenceNumber(count)
                 .payloadBuilder(new UnknownPacket.Builder().rawData(echoData));
         return echoBuilder;

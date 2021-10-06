@@ -49,7 +49,7 @@ public class DefaultGatewayMacBuilder extends AbstractNetworkCommand {
     }
 
     @Override
-    protected Packet buildPacket(int count, int ttl, NetworkParameter parameter, InetAddress dstIpAddress) {
+    protected Packet buildPacket(int count, int ttl, short identifier, NetworkParameter parameter, InetAddress dstIpAddress) {
         throw new NotImplementedException();
     }
 

@@ -26,11 +26,15 @@ public abstract class AbstractNetworkCommand {
         this.parameter = parameter;
     }
 
+    protected abstract long sendPacket(Packet packet);
+
+    protected abstract Packet buildPacket(int count, int ttl, short identifier, NetworkParameter parameter, InetAddress dstIpAddress);
+
+    // ToDo: Document
     protected ReceivedPacket sendAndReceivePacket(Packet packet) {
         Task receiveTask = new Task(receiveHandle, listener, 1);
         Future receiveFuture = executor.submit(receiveTask);
 
-        // Packet packet = buildPacket(count, ttl, parameter, InetAddress dstIpAddress);
         long start = sendPacket(packet);
         try {
             receiveFuture.get(WAIT_FOR_RESPONSE_TIMEOUT, TimeUnit.MILLISECONDS);
@@ -41,10 +45,6 @@ public abstract class AbstractNetworkCommand {
         long delay = (System.nanoTime() - start) / 1000000;
         return new ReceivedPacket(pRef.get(), delay);
     }
-
-    protected abstract long sendPacket(Packet packet);
-
-    protected abstract Packet buildPacket(int count, int ttl, NetworkParameter parameter, InetAddress dstIpAddress);
 
     protected void closeExecutor(ExecutorService executor) {
         if (executor != null && !executor.isShutdown()) {
