@@ -52,12 +52,14 @@ public class ProcessPacketResult {
         this.reportMessage = reportMessage;
     }
 
+
     @Override
     public String toString() {
         return "ProcessPacketResult{" +
                 "isLastResult=" + isLastResult +
                 ", count=" + count +
                 ", ttl=" + ttl +
+                ", reportMessage='" + (reportMessage == null ? "null" : reportMessage) + '\'' +
                 '}';
     }
 }

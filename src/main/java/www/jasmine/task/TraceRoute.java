@@ -3,7 +3,6 @@ package www.jasmine.task;
 import www.jasmine.Command;
 import www.jasmine.config.TracertConfig;
 import www.jasmine.network.NetworkParameter;
-import www.jasmine.network.PingCommand;
 import www.jasmine.network.TraceRouteCommand;
 import www.jasmine.report.Report;
 

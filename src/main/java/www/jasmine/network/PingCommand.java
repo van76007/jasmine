@@ -60,6 +60,7 @@ public class PingCommand extends AbstractNetworkCommand {
             ReceivedPacket receivedPacket = sendAndReceivePacket(packet);
             processReceivedPacket(receivedPacket, processPacketResult);
         }
+        System.out.println("LAST ProcessPacketResult: " + processPacketResult.toString());
         return processPacketResult.getReportMessage();
     }
 
@@ -72,7 +73,7 @@ public class PingCommand extends AbstractNetworkCommand {
     }
 
     protected boolean shouldSendPacket(ProcessPacketResult processPacketResult) {
-        return !processPacketResult.isLastResult() && processPacketResult.getCount() < config.getCount();
+        return !processPacketResult.isLastResult() && processPacketResult.getCount() < config.getCount() + 1;
     }
 
     protected void processReceivedPacket(ReceivedPacket receivedPacket, ProcessPacketResult processPacketResult) {
@@ -82,8 +83,14 @@ public class PingCommand extends AbstractNetworkCommand {
             if (packet.contains(IcmpV4EchoReplyPacket.class)) {
                 IpV4Packet p = packet.get(IpV4Packet.class);
                 IcmpV4EchoReplyPacket pp = packet.get(IcmpV4EchoReplyPacket.class);
+
+                InetAddress hopAddress = p.getHeader().getSrcAddr();
+                System.out.println("Got IcmpV4EchoReplyPacket getHostName: " + hopAddress.getHostName()
+                 + " getHostAddress: " + hopAddress.getHostAddress() + " icmp_seq: " + pp.getHeader().getSequenceNumberAsInt()
+                 + " for this host: " + this.remoteInetAddress.toString());
+
                 message = String.format("%d bytes from %s: icmp_seq=%d ttl=%d time=%d ms",
-                        pp.length(), remoteInetAddress.getHostAddress(), pp.getHeader().getSequenceNumber(),
+                        pp.length(), remoteInetAddress.getHostAddress(), processPacketResult.getCount(),
                         p.getHeader().getTtl(), receivedPacket.getDelay());
             }
         }
