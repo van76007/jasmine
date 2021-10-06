@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URL;
 
-public class DefaultGatewayMacBuilder extends AbstractNetworkTask {
+public class DefaultGatewayMacBuilder extends AbstractNetworkCommand {
 
     public DefaultGatewayMacBuilder(NetworkParameter parameter) {
         super(parameter);

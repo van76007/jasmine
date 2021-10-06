@@ -1,10 +1,9 @@
-package www.jasmine.task;
+package www.jasmine.taskV1;
 
 import www.jasmine.Command;
 import www.jasmine.config.TracertConfig;
 import www.jasmine.network.NetworkParameter;
-import www.jasmine.network.Ping;
-import www.jasmine.network.Tracert;
+import www.jasmine.network.TraceRouteCommand;
 import www.jasmine.report.Report;
 
 import java.net.InetAddress;
@@ -20,7 +19,7 @@ public class TracertTask extends NetworkTask {
     public TracertTask(String[] hosts, TracertConfig config, ExecutorService executor, NetworkParameter networkParameter) {
         super(hosts);
         this.config = config;
-        this.command = Command.TRACERT;
+        this.command = Command.TRACEROUTE;
         this.executor = executor;
         this.parameter = networkParameter;
     }
@@ -33,8 +32,8 @@ public class TracertTask extends NetworkTask {
                 Report report = null;
                 try {
                     InetAddress remoteInetAddress = InetAddress.getByName(host);
-                    Tracert tracert = new Tracert(parameter, remoteInetAddress, config);
-                    report = tracert.ping();
+                    TraceRouteCommand traceRoute = new TraceRouteCommand(parameter, remoteInetAddress, config);
+                    report = traceRoute.ping();
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
                 }

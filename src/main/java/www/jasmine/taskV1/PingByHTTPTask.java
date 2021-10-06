@@ -1,4 +1,4 @@
-package www.jasmine.task;
+package www.jasmine.taskV1;
 
 import www.jasmine.Command;
 import www.jasmine.config.PingConfig;

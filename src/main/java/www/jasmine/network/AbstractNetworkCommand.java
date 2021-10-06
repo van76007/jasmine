@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static www.jasmine.network.NetworkConstants.*;
 
-public abstract class AbstractNetworkTask {
+public abstract class AbstractNetworkCommand {
     NetworkParameter parameter;
     PcapHandle receiveHandle = null;
     PcapHandle sendHandle = null;
@@ -22,7 +22,7 @@ public abstract class AbstractNetworkTask {
     ExecutorService executor = Executors.newSingleThreadExecutor();
     final AtomicReference<Packet> pRef = new AtomicReference<>();
 
-    public AbstractNetworkTask(NetworkParameter parameter) {
+    public AbstractNetworkCommand(NetworkParameter parameter) {
         this.parameter = parameter;
     }
 

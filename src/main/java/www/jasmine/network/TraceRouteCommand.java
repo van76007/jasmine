@@ -1,19 +1,18 @@
 package www.jasmine.network;
 
-import org.pcap4j.core.Pcaps;
 import org.pcap4j.packet.*;
 import www.jasmine.config.TracertConfig;
 
 import java.net.InetAddress;
 
-public class Tracert extends Ping {
+public class TraceRouteCommand extends PingCommand {
     TracertConfig config;
 
-    public Tracert(NetworkParameter parameter, InetAddress remoteInetAddress) {
+    public TraceRouteCommand(NetworkParameter parameter, InetAddress remoteInetAddress) {
         super(parameter, remoteInetAddress);
     }
 
-    public Tracert(NetworkParameter parameter, InetAddress remoteInetAddress, TracertConfig config) {
+    public TraceRouteCommand(NetworkParameter parameter, InetAddress remoteInetAddress, TracertConfig config) {
         this(parameter, remoteInetAddress);
         this.config = config;
         this.timeoutMessage = String.format("Request timeout for max_ttl %d", config.getMaxTtl());

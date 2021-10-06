@@ -3,9 +3,10 @@ package www.jasmine;
 import www.jasmine.config.AppConfig;
 import www.jasmine.network.NetworkParameter;
 import www.jasmine.network.NetworkParameterBuilder;
-import www.jasmine.task.PingByHTTPTask;
-import www.jasmine.task.PingByICMPTask;
-import www.jasmine.task.TracertTask;
+import www.jasmine.task.AbstractTask;
+import www.jasmine.task.PingByHTTP;
+import www.jasmine.task.PingByICMP;
+import www.jasmine.task.TraceRoute;
 
 import java.util.concurrent.*;
 import java.util.logging.Logger;
@@ -15,8 +16,8 @@ public class Processor {
     Command command;
     Logger logger = SingletonLogger.SingletonLogger().logger;
     ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-    ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-    ExecutorService executorForWorkers = Executors.newFixedThreadPool(4);
+    ScheduledExecutorService executor = Executors.newScheduledThreadPool(4);
+    // ScheduledExecutorService executorForWorkers = Executors.newScheduledThreadPool(4);
 
     public Processor(AppConfig appConfig) {
         this.appConfig = appConfig;
@@ -30,24 +31,7 @@ public class Processor {
         NetworkParameterBuilder builder = new NetworkParameterBuilder();
         NetworkParameter networkParameter = builder.buildNetworkParameter();
 
-        switch (command) {
-            case PING_ICMP:
-                final PingByICMPTask pingByICMPTask = new PingByICMPTask(appConfig.getHosts(), appConfig.getPingConfig(), executorForWorkers, networkParameter);
-                runPeriodicTaskThenStop(pingByICMPTask::run, appConfig.getDelay());
-                break;
-            case PING_HTTP:
-                final PingByHTTPTask pingByHTTPTask = new PingByHTTPTask(appConfig.getHosts(), appConfig.getPingConfig(), executorForWorkers);
-                runPeriodicTaskThenStop(pingByHTTPTask::run, appConfig.getDelay());
-                break;
-            case TRACERT:
-                final TracertTask tracertTask = new TracertTask(appConfig.getHosts(), appConfig.getTracertConfig(), executorForWorkers, networkParameter);
-                runPeriodicTaskThenStop(tracertTask::run, appConfig.getDelay());
-                break;
-            default:
-                logger.warning("Unhandled command: " + command.name());
-                break;
-        }
-
+        runNetworkCommand(appConfig.getHosts(), networkParameter, appConfig);
         return true;
     }
 
@@ -60,14 +44,68 @@ public class Processor {
         }
     }
 
-    private void runPeriodicTaskThenStop(Runnable runnableTask, Long delay) {
-        Future resultFuture = executorService
-                .scheduleAtFixedRate(runnableTask, 0, delay, TimeUnit.MILLISECONDS);
-        executor.schedule(() -> {
-            resultFuture.cancel(true);
-            executorService.shutdown();
-            executorForWorkers.shutdown();
-        }, appConfig.getShutdownPeriod(), TimeUnit.SECONDS);
+    // V.1
+    /*
+    private void runNetworkCommand(String[] hosts, NetworkParameter networkParameter, AppConfig config) {
+        for(String host: hosts) {
+            runNetworkCommandOnAHost(host, networkParameter, config);
+        }
+    }
+
+    private void runNetworkCommandOnAHost(String host, NetworkParameter networkParameter, AppConfig config) {
+        AbstractTask pingByHTTP = new PingByHTTP(host, config.getPingConfig(), networkParameter);
+        AbstractTask pingByICMP = new PingByICMP(host, config.getPingConfig(), networkParameter);
+        AbstractTask traceRoute = new TraceRoute(host, config.getTracertConfig(), networkParameter);
+
+        AbstractTask tasks[] = new AbstractTask[] { pingByHTTP, pingByICMP, traceRoute };
+        for (AbstractTask task : tasks) {
+            Runnable runnable = () -> {
+                task.run();
+            };
+            Future resultFuture = executorService
+                    .scheduleAtFixedRate(runnable, 0, config.getDelay(), TimeUnit.MILLISECONDS);
+            executor.schedule(() -> {
+                resultFuture.cancel(true);
+                executorService.shutdown();
+                System.out.println("FINISH ALL");
+            }, appConfig.getShutdownPeriod(), TimeUnit.SECONDS);
+        }
+        executor.shutdown();
+    }
+    */
+
+    // V.2
+    private void runNetworkCommand(String[] hosts, NetworkParameter networkParameter, AppConfig config) {
+        for(String host: hosts) {
+            Runnable runnable = () -> {
+                runNetworkCommandOnAHost(host, networkParameter, config);
+            };
+            Future resultFuture = executorService.submit(runnable);
+            executor.schedule(() -> {
+                resultFuture.cancel(true);
+                executorService.shutdown();
+            }, appConfig.getShutdownPeriod(), TimeUnit.SECONDS);
+        }
+    }
+
+    private void runNetworkCommandOnAHost(String host, NetworkParameter networkParameter, AppConfig config) {
+        AbstractTask pingByHTTP = new PingByHTTP(host, config.getPingConfig(), networkParameter);
+        AbstractTask pingByICMP = new PingByICMP(host, config.getPingConfig(), networkParameter);
+        AbstractTask traceRoute = new TraceRoute(host, config.getTracertConfig(), networkParameter);
+
+        AbstractTask tasks[] = new AbstractTask[] { pingByHTTP, pingByICMP, traceRoute };
+        for (AbstractTask task : tasks) {
+            Runnable runnable = () -> {
+                task.run();
+            };
+            Future resultFuture = executorService
+                    .scheduleAtFixedRate(runnable, 0, config.getDelay(), TimeUnit.MILLISECONDS);
+            executor.schedule(() -> {
+                resultFuture.cancel(true);
+                executorService.shutdown();
+                System.out.println("FINISH ALL");
+            }, appConfig.getShutdownPeriod(), TimeUnit.SECONDS);
+        }
         executor.shutdown();
     }
 }

@@ -12,17 +12,17 @@ import www.jasmine.report.Report;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 
-public class Ping extends AbstractNetworkTask {
+public class PingCommand extends AbstractNetworkCommand {
     PingConfig config;
     InetAddress remoteInetAddress;
     String timeoutMessage;
 
-    public Ping(NetworkParameter parameter, InetAddress remoteInetAddress) {
+    public PingCommand(NetworkParameter parameter, InetAddress remoteInetAddress) {
         super(parameter);
         this.remoteInetAddress = remoteInetAddress;
     }
 
-    public Ping(NetworkParameter parameter, InetAddress remoteInetAddress, PingConfig config) {
+    public PingCommand(NetworkParameter parameter, InetAddress remoteInetAddress, PingConfig config) {
         this(parameter, remoteInetAddress);
         this.config = config;
         this.timeoutMessage = String.format("Request timeout for icmp_seq %d", config.getCount());

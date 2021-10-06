@@ -1,9 +1,9 @@
-package www.jasmine.task;
+package www.jasmine.taskV1;
 
 import www.jasmine.Command;
 import www.jasmine.config.PingConfig;
 import www.jasmine.network.NetworkParameter;
-import www.jasmine.network.Ping;
+import www.jasmine.network.PingCommand;
 import www.jasmine.report.Report;
 
 import java.net.InetAddress;
@@ -32,7 +32,7 @@ public class PingByICMPTask extends NetworkTask {
                 Report report = null;
                 try {
                     InetAddress remoteInetAddress = InetAddress.getByName(host);
-                    Ping ping = new Ping(parameter, remoteInetAddress, config);
+                    PingCommand ping = new PingCommand(parameter, remoteInetAddress, config);
                     report = ping.ping();
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
