@@ -30,7 +30,19 @@ public abstract class AbstractNetworkCommand {
 
     protected abstract Packet buildPacket(int count, int ttl, short identifier, NetworkParameter parameter, InetAddress dstIpAddress);
 
-    protected ReceivedPacket sendAndReceivePacket(Packet packet) {
+    protected void setupPacketHandlers() throws PcapNativeException, NotOpenException {
+        sendHandle = parameter.getNif().openLive(SNAPLEN, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, READ_TIMEOUT);
+        receiveHandle = parameter.getNif().openLive(SNAPLEN, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, READ_TIMEOUT);
+        receiveHandle.setFilter(bpfExpression, BpfProgram.BpfCompileMode.OPTIMIZE);
+    }
+
+    protected ReceivedPacket sendAndReceivePacket(Packet packet, final short identifier) {
+        listener = p -> {
+            if (p.contains(EthernetPacket.class) && isExpectedReply(p, identifier)) {
+                pRef.set(p);
+            }
+        };
+
         Task receiveTask = new Task(receiveHandle, listener, 1);
         Future receiveFuture = executor.submit(receiveTask);
         long start = sendPacket(packet);
@@ -42,6 +54,10 @@ public abstract class AbstractNetworkCommand {
         }
         long delay = (System.nanoTime() - start) / 1000000;
         return new ReceivedPacket(pRef.get(), delay);
+    }
+
+    protected boolean isExpectedReply(Packet packet, short identifier) {
+        return true;
     }
 
     protected void closeExecutor(ExecutorService executor) {
@@ -65,20 +81,5 @@ public abstract class AbstractNetworkCommand {
                 e.printStackTrace();
             }
         }
-    }
-
-    protected void setupPacketHandlers() throws PcapNativeException, NotOpenException {
-        sendHandle = parameter.getNif().openLive(SNAPLEN, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, READ_TIMEOUT);
-        receiveHandle = parameter.getNif().openLive(SNAPLEN, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, READ_TIMEOUT);
-        receiveHandle.setFilter(bpfExpression, BpfProgram.BpfCompileMode.OPTIMIZE);
-        listener = packet -> {
-            if (packet.contains(EthernetPacket.class) && isExpectedReply(packet)) {
-                pRef.set(packet);
-            }
-        };
-    }
-
-    protected boolean isExpectedReply(Packet packet) {
-        return true;
     }
 }

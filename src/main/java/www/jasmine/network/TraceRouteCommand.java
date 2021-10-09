@@ -49,7 +49,7 @@ public class TraceRouteCommand extends PingCommand {
      *                            3. That IP frame having the same destination IP as the IP we are tracing route
      */
     @Override
-    protected boolean isExpectedReply(Packet packet) {
+    protected boolean isExpectedReply(Packet packet, short identifier) {
         if (packet != null) {
             if (packet.contains(IcmpV4TimeExceededPacket.class)) {
                 IcmpV4TimeExceededPacket timeExceededPacket = packet.get(IcmpV4TimeExceededPacket.class);

@@ -62,7 +62,7 @@ public class PingCommand extends AbstractNetworkCommand {
             if (processPacketResult.getCount() > 0) {
                 pause();
             }
-            ReceivedPacket receivedPacket = sendAndReceivePacket(packet);
+            ReceivedPacket receivedPacket = sendAndReceivePacket(packet, identifier);
             processReceivedPacket(receivedPacket, processPacketResult, identifier);
         }
         System.out.println(this.getClass().getName() + " LAST ProcessPacketResult: " + processPacketResult.toString());
@@ -77,12 +77,23 @@ public class PingCommand extends AbstractNetworkCommand {
         }
     }
 
+    @Override
+    protected boolean isExpectedReply(Packet packet, short identifier) {
+        if (packet != null) {
+            if (packet.contains(IcmpV4EchoReplyPacket.class)) {
+                IcmpV4EchoReplyPacket echo = packet.get(IcmpV4EchoReplyPacket.class);
+                return echo.getHeader().getIdentifier() == identifier;
+            }
+        }
+        return false;
+    }
+
     protected boolean shouldSendPacket(ProcessPacketResult processPacketResult) {
         return processPacketResult.getCount() <= config.getCount();
     }
 
     protected void processReceivedPacket(ReceivedPacket receivedPacket, ProcessPacketResult processPacketResult, short identifier) {
-        String message = null;
+        String message;
         Packet packet = receivedPacket.getPacket();
         if (packet != null) {
             if (packet.contains(IcmpV4EchoReplyPacket.class)) {

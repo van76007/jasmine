@@ -22,7 +22,7 @@ public class DefaultGatewayMacBuilder extends AbstractNetworkCommand {
         MacAddress defaultGatewayMac = null;
         try {
             setupPacketHandlers();
-            ReceivedPacket receivedPacket = sendAndReceivePacket(null);
+            ReceivedPacket receivedPacket = sendAndReceivePacket(null, (short)0);
             Packet packet = receivedPacket.getPacket();
             if (packet != null) {
                 EthernetPacket p = packet.get(EthernetPacket.class);
