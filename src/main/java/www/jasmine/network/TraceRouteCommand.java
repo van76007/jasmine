@@ -47,7 +47,14 @@ public class TraceRouteCommand extends PingCommand {
             IcmpV4TimeExceededPacket timeExceededPacket = packet.get(IcmpV4TimeExceededPacket.class);
             IpV4Packet insideIpPacket = timeExceededPacket.get(IpV4Packet.class);
             InetAddress dstAddr = insideIpPacket.getHeader().getDstAddr();
-            return isTheSameIpAddress(dstAddr, remoteInetAddress) && isTheSameIdentifier(timeExceededPacket, identifier);
+            boolean result = isTheSameIpAddress(dstAddr, remoteInetAddress) && isTheSameIdentifier(timeExceededPacket, identifier);
+            /*
+            if(result) {
+                System.out.println("GOT PACKAGE: " + identifier + " remote IP: " + remoteInetAddress.toString());
+                System.out.println(packet.toString());
+            }
+            */
+            return result;
         }
         return false;
     }
@@ -55,6 +62,7 @@ public class TraceRouteCommand extends PingCommand {
     private boolean isTheSameIdentifier(IcmpV4TimeExceededPacket timeExceededPacket, short identifier) {
         IcmpV4EchoPacket insideIcmpV4packet = timeExceededPacket.get(IcmpV4EchoPacket.class);
         // return insideIcmpV4packet.getHeader().getIdentifier() == identifier;
+
         short id = insideIcmpV4packet.getHeader().getIdentifier();
         System.out.println("This id=" + identifier + " vs other id=" + id);
         return id == identifier;
@@ -81,9 +89,6 @@ public class TraceRouteCommand extends PingCommand {
         Packet packet = receivedPacket.getPacket();
         String reportMessage;
         if (packet != null && packet.contains(IcmpV4TimeExceededPacket.class)) {
-            IcmpV4TimeExceededPacket timeExceededPacket = packet.get(IcmpV4TimeExceededPacket.class);
-            IpV4Packet insideIpPacket = timeExceededPacket.get(IpV4Packet.class);
-            InetAddress dstAddr = insideIpPacket.getHeader().getDstAddr();
             IpV4Packet ipPacket = packet.get(IpV4Packet.class);
             InetAddress hopAddress = ipPacket.getHeader().getSrcAddr();
             reportMessage = String.format("%d %s (%s) %d ns %.2f ms",
@@ -94,9 +99,11 @@ public class TraceRouteCommand extends PingCommand {
                     receivedPacket.getDelayInMilliseconds());
             processPacketResult.appendReportMessage(reportMessage);
 
-            System.out.println("TRACEROUTE from: " + hopAddress.getHostName() + " TTL: " + processPacketResult.getTtl()
-                    + " to host: " + remoteInetAddress.toString() +
-                    " inside dstIP: " + dstAddr.toString());
+            System.out.println("TRACEROUTE to " + remoteInetAddress.toString() + " hop: " + hopAddress.getHostName() + " TTL: " + processPacketResult.getTtl());
+            if(hopAddress.getHostName().equals("192.168.1.1") && processPacketResult.getTtl() > 1) {
+                System.out.println("ROUGE PACKAGE: " + identifier + " remote IP: " + remoteInetAddress.toString());
+                System.out.println(packet.toString());
+            }
 
             processPacketResult.increaseSequence(1);
         }

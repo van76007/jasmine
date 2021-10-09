@@ -33,7 +33,7 @@ public class PingCommand extends AbstractNetworkCommand {
     public Report ping() {
         Report report = null;
         try {
-            setupPacketHandlers();
+            setupSendPacketHandler();
             String reportMessage = loop();
             report = new Report(remoteInetAddress.getHostAddress(),
                     reportMessage == null ? timeoutMessage : reportMessage);
@@ -41,7 +41,7 @@ public class PingCommand extends AbstractNetworkCommand {
             e.printStackTrace();
         } finally {
             closeExecutor(executor);
-            closeHandler(receiveHandle);
+            closeHandler(sendHandle);
         }
         return report;
     }
@@ -50,7 +50,7 @@ public class PingCommand extends AbstractNetworkCommand {
         return new ProcessPacketResult( 0, 100);
     }
 
-    private String loop() {
+    private String loop() throws PcapNativeException, NotOpenException {
         Random random = new Random();
         short identifier = (short) random.nextInt(1 << 15);
         System.out.println("COMMAND: " + this.getClass().getName() + " identifier: " + identifier);

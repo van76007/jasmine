@@ -44,7 +44,7 @@ public class ProcessPacketResult {
         return "ProcessPacketResult{" +
                 "sequence=" + sequence +
                 ", ttl=" + ttl +
-                ", report=" + stringBuilder.toString() +
+                ", report=\n" + stringBuilder.toString() +
                 '}';
     }
 }

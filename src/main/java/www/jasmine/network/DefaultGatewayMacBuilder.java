@@ -21,7 +21,7 @@ public class DefaultGatewayMacBuilder extends AbstractNetworkCommand {
     public MacAddress buildDefaultGatewayMac() {
         MacAddress defaultGatewayMac = null;
         try {
-            setupPacketHandlers();
+            setupSendPacketHandler();
             ReceivedPacket receivedPacket = sendAndReceivePacket(null, (short)0);
             Packet packet = receivedPacket.getPacket();
             if (packet != null) {
@@ -32,7 +32,7 @@ public class DefaultGatewayMacBuilder extends AbstractNetworkCommand {
             e.printStackTrace();
         } finally {
             closeExecutor(executor);
-            closeHandler(receiveHandle);
+            closeHandler(sendHandle);
         }
         return defaultGatewayMac;
     }

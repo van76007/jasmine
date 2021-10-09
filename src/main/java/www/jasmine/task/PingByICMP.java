@@ -41,6 +41,6 @@ public class PingByICMP extends AbstractTask {
 
     @Override
     void report(Report report) {
-        logger.info(String.format("To report result of %s about host: %s data: %s", command, report.getHost(), report.getMessage()));
+        logger.info(String.format("To report result of %s about host: %s data:\n%s", command, report.getHost(), report.getMessage()));
     }
 }
