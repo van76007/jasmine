@@ -30,7 +30,6 @@ public abstract class AbstractNetworkCommand {
 
     protected abstract Packet buildPacket(int count, int ttl, short identifier, NetworkParameter parameter, InetAddress dstIpAddress);
 
-    // ToDo: Document
     protected ReceivedPacket sendAndReceivePacket(Packet packet) {
         Task receiveTask = new Task(receiveHandle, listener, 1);
         Future receiveFuture = executor.submit(receiveTask);

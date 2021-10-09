@@ -19,6 +19,7 @@ public class PingByHTTP extends AbstractTask {
     @Override
     public void run() {
         logger.info(String.format("To run: %s on host: %s with config timeout %d ms", command.name(), host, config.getTimeout()));
+
         boolean isReachable;
         long tStart = System.nanoTime();
         try {

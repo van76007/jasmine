@@ -17,7 +17,7 @@ public class Processor {
 
     ScheduledExecutorService executorForAllHosts = Executors.newScheduledThreadPool(2);
     ScheduledExecutorService executorForAllTasks = Executors.newScheduledThreadPool(2);
-    ScheduledExecutorService executorForNetworkingTasks = Executors.newScheduledThreadPool(4);
+    ScheduledExecutorService executorForNetworkingTasks = Executors.newScheduledThreadPool(2);
     ScheduledExecutorService scheduledShutdownExecutor = Executors.newSingleThreadScheduledExecutor();
 
     public Processor(AppConfig appConfig) {
@@ -39,9 +39,9 @@ public class Processor {
             Future resultFuture = executorForAllHosts.submit(runnable);
             scheduledShutdownExecutor.schedule(() -> {
                 resultFuture.cancel(true);
-                executorForAllHosts.shutdown();
                 executorForAllTasks.shutdown();
-                System.out.println("FINISH ALL FOR ALL HOSTS");
+                executorForAllHosts.shutdown();
+                logger.info("Finish running network commands for all hosts");
             }, appConfig.getShutdownPeriod(), TimeUnit.SECONDS);
         }
         scheduledShutdownExecutor.shutdown();
@@ -52,11 +52,9 @@ public class Processor {
         AbstractTask pingByICMP = new PingByICMP(host, config.getPingConfig(), networkParameter, executorForNetworkingTasks);
         AbstractTask traceRoute = new TraceRoute(host, config.getTracertConfig(), networkParameter, executorForNetworkingTasks);
 
-        AbstractTask tasks[] = new AbstractTask[] { pingByHTTP, pingByICMP, traceRoute };
+        AbstractTask[] tasks = new AbstractTask[] { pingByHTTP, pingByICMP, traceRoute };
         for (AbstractTask task : tasks) {
-            Runnable runnable = () -> {
-                task.run();
-            };
+            Runnable runnable = task::run;
             executorForAllTasks
                     .scheduleAtFixedRate(runnable, 0, config.getDelay(), TimeUnit.MILLISECONDS);
         }

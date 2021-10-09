@@ -1,14 +1,11 @@
 package www.jasmine.network;
 
-// ToDo: Refactor
 public class ProcessPacketResult {
-    private boolean isLastResult;
     private int count;
     private int ttl;
     private String reportMessage;
 
-    public ProcessPacketResult(boolean isLastResult, int count, int ttl) {
-        this.isLastResult = isLastResult;
+    public ProcessPacketResult(int count, int ttl) {
         this.count = count;
         this.ttl = ttl;
     }
@@ -19,14 +16,6 @@ public class ProcessPacketResult {
 
     public void increaseTtl(int amount) {
         this.ttl += amount;
-    }
-
-    public boolean isLastResult() {
-        return isLastResult;
-    }
-
-    public void setLastResult(boolean lastResult) {
-        isLastResult = lastResult;
     }
 
     public int getCount() {
@@ -57,8 +46,7 @@ public class ProcessPacketResult {
     @Override
     public String toString() {
         return "ProcessPacketResult{" +
-                "isLastResult=" + isLastResult +
-                ", count=" + count +
+                "count=" + count +
                 ", ttl=" + ttl +
                 ", reportMessage='" + (reportMessage == null ? "null" : reportMessage) + '\'' +
                 '}';

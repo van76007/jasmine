@@ -47,7 +47,7 @@ public class PingCommand extends AbstractNetworkCommand {
     }
 
     protected ProcessPacketResult getProcessPacketResult() {
-        return new ProcessPacketResult(false, 0, 100);
+        return new ProcessPacketResult( 0, 100);
     }
 
     private String loop() {
@@ -57,7 +57,7 @@ public class PingCommand extends AbstractNetworkCommand {
 
         ProcessPacketResult processPacketResult = getProcessPacketResult();
         while(shouldSendPacket(processPacketResult)) {
-            System.out.println("ProcessPacketResult: " + processPacketResult.toString());
+            System.out.println(this.getClass().getName() + " ProcessPacketResult: " + processPacketResult.toString());
             Packet packet = buildPacket(processPacketResult.getCount(), processPacketResult.getTtl(), identifier, parameter, remoteInetAddress);
             if (processPacketResult.getCount() > 0) {
                 pause();
@@ -78,7 +78,7 @@ public class PingCommand extends AbstractNetworkCommand {
     }
 
     protected boolean shouldSendPacket(ProcessPacketResult processPacketResult) {
-        return !processPacketResult.isLastResult() && processPacketResult.getCount() < config.getCount() + 1;
+        return processPacketResult.getCount() <= config.getCount();
     }
 
     protected void processReceivedPacket(ReceivedPacket receivedPacket, ProcessPacketResult processPacketResult, short identifier) {
@@ -100,12 +100,12 @@ public class PingCommand extends AbstractNetworkCommand {
                 message = String.format("%d bytes from %s: icmp_seq=%d ttl=%d time=%d ms",
                         echo.length(), remoteInetAddress.getHostAddress(), processPacketResult.getCount(),
                         ipPacket.getHeader().getTtl(), receivedPacket.getDelay());
+                processPacketResult.setReportMessage(message);
             }
         }
-        processPacketResult.setLastResult(false);
+
         processPacketResult.increaseCount(1);
         processPacketResult.increaseTtl(1);
-        processPacketResult.setReportMessage(message);
     }
 
     @Override
