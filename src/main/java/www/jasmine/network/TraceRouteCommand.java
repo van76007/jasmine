@@ -68,8 +68,13 @@ public class TraceRouteCommand extends PingCommand {
             InetAddress dstAddr = insideIpPacket.getHeader().getDstAddr();
             IpV4Packet ipPacket = packet.get(IpV4Packet.class);
             InetAddress hopAddress = ipPacket.getHeader().getSrcAddr();
-            reportMessage = String.format("%d %s (%s) %d ns %.2f ms", processPacketResult.getTtl(), hopAddress.getHostName(), hopAddress.getHostAddress(), receivedPacket.getDelay(), (float) receivedPacket.getDelay() / 1000000);
-            processPacketResult.setReportMessage(reportMessage);
+            reportMessage = String.format("%d %s (%s) %d ns %.2f ms",
+                    processPacketResult.getTtl(),
+                    hopAddress.getHostName(),
+                    hopAddress.getHostAddress(),
+                    receivedPacket.getDelay(),
+                    receivedPacket.getDelayInMilliseconds());
+            processPacketResult.appendReportMessage(reportMessage);
 
             // Try to probe the same host again, i.e. reuse the same TTL
             int sequence = processPacketResult.getSequence();

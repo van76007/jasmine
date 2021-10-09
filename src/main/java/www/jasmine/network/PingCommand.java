@@ -94,7 +94,7 @@ public class PingCommand extends AbstractNetworkCommand {
     }
 
     protected boolean shouldContinue(ProcessPacketResult processPacketResult) {
-        return processPacketResult.getSequence() <= config.getCount();
+        return processPacketResult.getSequence() < config.getCount();
     }
 
     protected void processReceivedPacket(ReceivedPacket receivedPacket, ProcessPacketResult processPacketResult, short identifier) {
@@ -110,10 +110,10 @@ public class PingCommand extends AbstractNetworkCommand {
                         + " their identifier: " + echo.getHeader().getIdentifier() + " icmp_seq: " + echo.getHeader().getSequenceNumberAsInt()
                         + " for this host: " + remoteInetAddress.toString());
 
-                message = String.format("%d bytes from %s: icmp_seq=%d ttl=%d time=%d ms",
+                message = String.format("%d bytes from %s: icmp_seq=%d ttl=%d time=%.2f ms",
                         echo.length(), remoteInetAddress.getHostAddress(), processPacketResult.getSequence(),
-                        ipPacket.getHeader().getTtl(), receivedPacket.getDelay());
-                processPacketResult.setReportMessage(message);
+                        ipPacket.getHeader().getTtl(), receivedPacket.getDelayInMilliseconds());
+                processPacketResult.appendReportMessage(message);
             }
         }
 

@@ -3,11 +3,12 @@ package www.jasmine.network;
 public class ProcessPacketResult {
     private int sequence;
     private int ttl;
-    private String reportMessage;
+    private StringBuilder stringBuilder;
 
     public ProcessPacketResult(int sequence, int ttl) {
         this.sequence = sequence;
         this.ttl = ttl;
+        this.stringBuilder = new StringBuilder();
     }
 
     public void increaseSequence(int amount) {
@@ -22,10 +23,6 @@ public class ProcessPacketResult {
         return sequence;
     }
 
-    public void setSequence(int sequence) {
-        this.sequence = sequence;
-    }
-
     public int getTtl() {
         return ttl;
     }
@@ -35,20 +32,19 @@ public class ProcessPacketResult {
     }
 
     public String getReportMessage() {
-        return reportMessage;
+        return stringBuilder.toString();
     }
 
-    public void setReportMessage(String reportMessage) {
-        this.reportMessage = reportMessage;
+    public void appendReportMessage(String reportMessage) {
+        this.stringBuilder.append(reportMessage).append("\n");
     }
-
 
     @Override
     public String toString() {
         return "ProcessPacketResult{" +
-                "count=" + sequence +
+                "sequence=" + sequence +
                 ", ttl=" + ttl +
-                ", reportMessage='" + (reportMessage == null ? "null" : reportMessage) + '\'' +
+                ", report=" + stringBuilder.toString() +
                 '}';
     }
 }

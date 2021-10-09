@@ -18,4 +18,8 @@ public class ReceivedPacket {
     public long getDelay() {
         return delay;
     }
+
+    public float getDelayInMilliseconds() {
+        return (float) delay / 1000000;
+    }
 }
