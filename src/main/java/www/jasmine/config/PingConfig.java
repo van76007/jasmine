@@ -17,14 +17,12 @@ public class PingConfig {
         return count;
     }
 
-    public int getTimeout() { return timeout; }
+    public int getTimeout() {
+        return timeout;
+    }
 
     public long getWait() {
         return wait;
-    }
-
-    public String getReportURL() {
-        return reportURL;
     }
 
     @Override

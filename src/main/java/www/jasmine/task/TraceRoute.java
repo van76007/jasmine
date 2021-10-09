@@ -12,12 +12,10 @@ import java.util.concurrent.ExecutorService;
 
 public class TraceRoute extends AbstractTask {
     TracertConfig config;
-    ExecutorService executor;
 
-    public TraceRoute(String host, TracertConfig config, NetworkParameter parameter, ExecutorService executor) {
+    public TraceRoute(String host, TracertConfig config, NetworkParameter parameter) {
         super(host, Command.TRACEROUTE, parameter);
         this.config = config;
-        this.executor = executor;
     }
 
     @Override

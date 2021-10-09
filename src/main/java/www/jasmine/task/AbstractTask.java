@@ -20,5 +20,6 @@ public abstract class AbstractTask {
     }
 
     public abstract void run();
+
     abstract void report(Report report);
 }

@@ -12,12 +12,10 @@ import java.util.concurrent.ExecutorService;
 
 public class PingByICMP extends AbstractTask {
     PingConfig config;
-    ExecutorService executor;
 
-    public PingByICMP(String host, PingConfig config, NetworkParameter parameter, ExecutorService executor) {
+    public PingByICMP(String host, PingConfig config, NetworkParameter parameter) {
         super(host, Command.PING_ICMP, parameter);
         this.config = config;
-        this.executor = executor;
     }
 
     @Override

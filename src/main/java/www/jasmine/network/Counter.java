@@ -17,10 +17,6 @@ public class Counter {
         return ttl;
     }
 
-    public void setSequence(int sequence) {
-        this.sequence = sequence;
-    }
-
     public void setTtl(int ttl) {
         this.ttl = ttl;
     }

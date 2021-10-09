@@ -25,10 +25,6 @@ public class TracertConfig {
         return numberOfProbes;
     }
 
-    public String getReportURL() {
-        return reportURL;
-    }
-
     @Override
     public String toString() {
         return "TracertConfig{" +
