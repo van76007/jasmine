@@ -53,7 +53,7 @@ public class PingCommand extends AbstractNetworkCommand {
     private String loop() {
         Random random = new Random();
         short identifier = (short) random.nextInt(1 << 15);
-        System.out.println("COMMAND: " + this.getClass().getName() + "identifier: " + identifier);
+        System.out.println("COMMAND: " + this.getClass().getName() + " identifier: " + identifier);
 
         ProcessPacketResult processPacketResult = getProcessPacketResult();
         while(shouldSendPacket(processPacketResult)) {
@@ -65,7 +65,7 @@ public class PingCommand extends AbstractNetworkCommand {
             ReceivedPacket receivedPacket = sendAndReceivePacket(packet);
             processReceivedPacket(receivedPacket, processPacketResult, identifier);
         }
-        System.out.println("LAST ProcessPacketResult: " + processPacketResult.toString());
+        System.out.println(this.getClass().getName() + " LAST ProcessPacketResult: " + processPacketResult.toString());
         return processPacketResult.getReportMessage();
     }
 
@@ -86,9 +86,6 @@ public class PingCommand extends AbstractNetworkCommand {
         Packet packet = receivedPacket.getPacket();
         if (packet != null) {
             if (packet.contains(IcmpV4EchoReplyPacket.class)) {
-                // ToDo: Consider only the ECHO packet that have the same identifier
-                //       E.g. check echo.getHeader().getIdentifier() == identifier
-                //       However, such check may be redundant as we already apply the BFP filter on the NIC
                 IpV4Packet ipPacket = packet.get(IpV4Packet.class);
                 IcmpV4EchoReplyPacket echo = packet.get(IcmpV4EchoReplyPacket.class);
 

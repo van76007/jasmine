@@ -33,7 +33,6 @@ public abstract class AbstractNetworkCommand {
     protected ReceivedPacket sendAndReceivePacket(Packet packet) {
         Task receiveTask = new Task(receiveHandle, listener, 1);
         Future receiveFuture = executor.submit(receiveTask);
-
         long start = sendPacket(packet);
         try {
             receiveFuture.get(WAIT_FOR_RESPONSE_TIMEOUT, TimeUnit.MILLISECONDS);
@@ -73,9 +72,13 @@ public abstract class AbstractNetworkCommand {
         receiveHandle = parameter.getNif().openLive(SNAPLEN, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, READ_TIMEOUT);
         receiveHandle.setFilter(bpfExpression, BpfProgram.BpfCompileMode.OPTIMIZE);
         listener = packet -> {
-            if (packet.contains(EthernetPacket.class)) {
+            if (packet.contains(EthernetPacket.class) && isExpectedReply(packet)) {
                 pRef.set(packet);
             }
         };
+    }
+
+    protected boolean isExpectedReply(Packet packet) {
+        return true;
     }
 }
