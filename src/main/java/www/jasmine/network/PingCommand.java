@@ -14,6 +14,7 @@ import java.net.InetAddress;
 import java.util.Random;
 
 public class PingCommand extends AbstractNetworkCommand {
+    final static int TTL = 100;
     PingConfig config;
     InetAddress remoteInetAddress;
     String timeoutMessage;
@@ -46,32 +47,37 @@ public class PingCommand extends AbstractNetworkCommand {
         return report;
     }
 
-    protected ProcessPacketResult getProcessPacketResult() {
-        return new ProcessPacketResult( 0, 100);
-    }
-
     private String loop() throws PcapNativeException, NotOpenException {
         Random random = new Random();
         short identifier = (short) random.nextInt(1 << 15);
         System.out.println("COMMAND: " + this.getClass().getName() + " identifier: " + identifier);
 
-        ProcessPacketResult processPacketResult = getProcessPacketResult();
-        while(shouldContinue(processPacketResult)) {
-            System.out.println(this.getClass().getName() + " ProcessPacketResult: " + processPacketResult.toString());
-            setNextTTL(processPacketResult);
-            Packet packet = buildPacket(processPacketResult.getSequence(), processPacketResult.getTtl(), identifier, parameter, remoteInetAddress);
-            if (processPacketResult.getSequence() > 0) {
+        ReportBuilder reportBuilder = new ReportBuilder();
+        Counter counter = initializeCounter();
+        while(shouldContinue(counter)) {
+            System.out.println(this.getClass().getName() + " ProcessPacketResult: " + counter.toString());
+            setNextTTL(counter);
+            Packet packet = buildPacket(counter.getSequence(), counter.getTtl(), identifier, parameter, remoteInetAddress);
+            if (counter.getSequence() > 0) {
                 pause();
             }
             ReceivedPacket receivedPacket = sendAndReceivePacket(packet, identifier);
-            processReceivedPacket(receivedPacket, processPacketResult, identifier);
+            processReceivedPacket(receivedPacket, counter, reportBuilder, identifier);
         }
-        System.out.println(this.getClass().getName() + " LAST ProcessPacketResult: " + processPacketResult.toString());
-        return processPacketResult.getReportMessage();
+        System.out.println(this.getClass().getName() + " LAST ProcessPacketResult: " + reportBuilder.toString());
+        return reportBuilder.getReportMessage();
     }
 
-    protected void setNextTTL(ProcessPacketResult processPacketResult) {
-        processPacketResult.setTtl(100);
+    protected Counter initializeCounter() {
+        return new Counter(0, TTL);
+    }
+
+    protected boolean shouldContinue(Counter counter) {
+        return counter.getSequence() < config.getCount();
+    }
+
+    protected void setNextTTL(Counter counter) {
+        counter.setTtl(TTL);
     }
 
     protected void pause() {
@@ -80,6 +86,30 @@ public class PingCommand extends AbstractNetworkCommand {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    protected void processReceivedPacket(ReceivedPacket receivedPacket, Counter counter, ReportBuilder reportBuilder, short identifier) {
+        String message;
+        Packet packet = receivedPacket.getPacket();
+        if (packet != null) {
+            if (packet.contains(IcmpV4EchoReplyPacket.class)) {
+                IpV4Packet ipPacket = packet.get(IpV4Packet.class);
+                IcmpV4EchoReplyPacket echo = packet.get(IcmpV4EchoReplyPacket.class);
+
+                InetAddress hopAddress = ipPacket.getHeader().getSrcAddr();
+                System.out.println("PING. Got IcmpV4EchoReplyPacket from: " + hopAddress.getHostName() + " my identifier: " + identifier
+                        + " their identifier: " + echo.getHeader().getIdentifier() + " icmp_seq: " + echo.getHeader().getSequenceNumberAsInt()
+                        + " for this host: " + remoteInetAddress.toString());
+
+                message = String.format("%d bytes from %s: icmp_seq=%d ttl=%d time=%.2f ms",
+                        echo.length(), remoteInetAddress.getHostAddress(), counter.getSequence(),
+                        ipPacket.getHeader().getTtl(), receivedPacket.getDelayInMilliseconds());
+                reportBuilder.appendReportMessage(message);
+            }
+        }
+
+        counter.increaseSequence(1);
+        counter.increaseTtl(1);
     }
 
     /**
@@ -96,34 +126,6 @@ public class PingCommand extends AbstractNetworkCommand {
             return echo.getHeader().getIdentifier() == identifier;
         }
         return false;
-    }
-
-    protected boolean shouldContinue(ProcessPacketResult processPacketResult) {
-        return processPacketResult.getSequence() < config.getCount();
-    }
-
-    protected void processReceivedPacket(ReceivedPacket receivedPacket, ProcessPacketResult processPacketResult, short identifier) {
-        String message;
-        Packet packet = receivedPacket.getPacket();
-        if (packet != null) {
-            if (packet.contains(IcmpV4EchoReplyPacket.class)) {
-                IpV4Packet ipPacket = packet.get(IpV4Packet.class);
-                IcmpV4EchoReplyPacket echo = packet.get(IcmpV4EchoReplyPacket.class);
-
-                InetAddress hopAddress = ipPacket.getHeader().getSrcAddr();
-                System.out.println("PING. Got IcmpV4EchoReplyPacket from: " + hopAddress.getHostName() + " my identifier: " + identifier
-                        + " their identifier: " + echo.getHeader().getIdentifier() + " icmp_seq: " + echo.getHeader().getSequenceNumberAsInt()
-                        + " for this host: " + remoteInetAddress.toString());
-
-                message = String.format("%d bytes from %s: icmp_seq=%d ttl=%d time=%.2f ms",
-                        echo.length(), remoteInetAddress.getHostAddress(), processPacketResult.getSequence(),
-                        ipPacket.getHeader().getTtl(), receivedPacket.getDelayInMilliseconds());
-                processPacketResult.appendReportMessage(message);
-            }
-        }
-
-        processPacketResult.increaseSequence(1);
-        processPacketResult.increaseTtl(1);
     }
 
     @Override
