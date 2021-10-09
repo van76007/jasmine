@@ -42,7 +42,6 @@ public abstract class AbstractNetworkCommand {
                 pRef.set(p);
             }
         };
-
         Task receiveTask = new Task(receiveHandle, listener, 1);
         Future receiveFuture = executor.submit(receiveTask);
         long start = sendPacket(packet);
@@ -52,7 +51,7 @@ public abstract class AbstractNetworkCommand {
         catch (Exception e) {
             e.printStackTrace();
         }
-        long delay = (System.nanoTime() - start) / 1000000;
+        long delay = System.nanoTime() - start;
         return new ReceivedPacket(pRef.get(), delay);
     }
 

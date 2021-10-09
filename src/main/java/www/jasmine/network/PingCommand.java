@@ -56,10 +56,10 @@ public class PingCommand extends AbstractNetworkCommand {
         System.out.println("COMMAND: " + this.getClass().getName() + " identifier: " + identifier);
 
         ProcessPacketResult processPacketResult = getProcessPacketResult();
-        while(shouldSendPacket(processPacketResult)) {
+        while(shouldContinue(processPacketResult)) {
             System.out.println(this.getClass().getName() + " ProcessPacketResult: " + processPacketResult.toString());
-            Packet packet = buildPacket(processPacketResult.getCount(), processPacketResult.getTtl(), identifier, parameter, remoteInetAddress);
-            if (processPacketResult.getCount() > 0) {
+            Packet packet = buildPacket(processPacketResult.getSequence(), processPacketResult.getTtl(), identifier, parameter, remoteInetAddress);
+            if (processPacketResult.getSequence() > 0) {
                 pause();
             }
             ReceivedPacket receivedPacket = sendAndReceivePacket(packet, identifier);
@@ -77,19 +77,24 @@ public class PingCommand extends AbstractNetworkCommand {
         }
     }
 
+    /**
+     * Filter the received packet from the network interface
+     * @param packet The received packet from the network interface
+     * @return true if and only if:
+     *                            1. It is ICMP reply package
+     *                            2. The ICMP packet identifier is the same as the one of the ICMP echo packet
+     */
     @Override
     protected boolean isExpectedReply(Packet packet, short identifier) {
-        if (packet != null) {
-            if (packet.contains(IcmpV4EchoReplyPacket.class)) {
-                IcmpV4EchoReplyPacket echo = packet.get(IcmpV4EchoReplyPacket.class);
-                return echo.getHeader().getIdentifier() == identifier;
-            }
+        if (packet != null && packet.contains(IcmpV4EchoReplyPacket.class)) {
+            IcmpV4EchoReplyPacket echo = packet.get(IcmpV4EchoReplyPacket.class);
+            return echo.getHeader().getIdentifier() == identifier;
         }
         return false;
     }
 
-    protected boolean shouldSendPacket(ProcessPacketResult processPacketResult) {
-        return processPacketResult.getCount() <= config.getCount();
+    protected boolean shouldContinue(ProcessPacketResult processPacketResult) {
+        return processPacketResult.getSequence() <= config.getCount();
     }
 
     protected void processReceivedPacket(ReceivedPacket receivedPacket, ProcessPacketResult processPacketResult, short identifier) {
@@ -106,13 +111,13 @@ public class PingCommand extends AbstractNetworkCommand {
                         + " for this host: " + remoteInetAddress.toString());
 
                 message = String.format("%d bytes from %s: icmp_seq=%d ttl=%d time=%d ms",
-                        echo.length(), remoteInetAddress.getHostAddress(), processPacketResult.getCount(),
+                        echo.length(), remoteInetAddress.getHostAddress(), processPacketResult.getSequence(),
                         ipPacket.getHeader().getTtl(), receivedPacket.getDelay());
                 processPacketResult.setReportMessage(message);
             }
         }
 
-        processPacketResult.increaseCount(1);
+        processPacketResult.increaseSequence(1);
         processPacketResult.increaseTtl(1);
     }
 

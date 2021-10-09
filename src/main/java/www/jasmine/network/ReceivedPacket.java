@@ -4,7 +4,7 @@ import org.pcap4j.packet.Packet;
 
 public class ReceivedPacket {
     Packet packet;
-    long delay;
+    long delay; // nanoseconds
 
     public ReceivedPacket(Packet packet, long delay) {
         this.packet = packet;

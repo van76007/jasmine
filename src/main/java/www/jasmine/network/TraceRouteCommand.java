@@ -1,16 +1,9 @@
 package www.jasmine.network;
 
-import org.pcap4j.core.BpfProgram;
-import org.pcap4j.core.NotOpenException;
-import org.pcap4j.core.PcapNativeException;
-import org.pcap4j.core.PcapNetworkInterface;
 import org.pcap4j.packet.*;
 import www.jasmine.config.TracertConfig;
 
 import java.net.InetAddress;
-
-import static www.jasmine.network.NetworkConstants.READ_TIMEOUT;
-import static www.jasmine.network.NetworkConstants.SNAPLEN;
 
 public class TraceRouteCommand extends PingCommand {
     TracertConfig config;
@@ -28,7 +21,7 @@ public class TraceRouteCommand extends PingCommand {
 
     @Override
     protected ProcessPacketResult getProcessPacketResult() {
-        return new ProcessPacketResult( 0, 1);
+        return new ProcessPacketResult( 1, 1);
     }
 
     @Override
@@ -50,21 +43,17 @@ public class TraceRouteCommand extends PingCommand {
      */
     @Override
     protected boolean isExpectedReply(Packet packet, short identifier) {
-        if (packet != null) {
-            if (packet.contains(IcmpV4TimeExceededPacket.class)) {
-                IcmpV4TimeExceededPacket timeExceededPacket = packet.get(IcmpV4TimeExceededPacket.class);
-                IpV4Packet insideIpPacket = timeExceededPacket.get(IpV4Packet.class);
-                if (insideIpPacket != null) {
-                    InetAddress dstAddr = insideIpPacket.getHeader().getDstAddr();
-                    return isTheSameIpAddress(dstAddr, remoteInetAddress);
-                }
-            }
+        if (packet != null && packet.contains(IcmpV4TimeExceededPacket.class)) {
+            IcmpV4TimeExceededPacket timeExceededPacket = packet.get(IcmpV4TimeExceededPacket.class);
+            IpV4Packet insideIpPacket = timeExceededPacket.get(IpV4Packet.class);
+            InetAddress dstAddr = insideIpPacket.getHeader().getDstAddr();
+            return isTheSameIpAddress(dstAddr, remoteInetAddress);
         }
         return false;
     }
 
     @Override
-    protected boolean shouldSendPacket(ProcessPacketResult processPacketResult) {
+    protected boolean shouldContinue(ProcessPacketResult processPacketResult) {
         System.out.println(this.getClass().getName() + " processPacketResult:" + processPacketResult.toString());
         return processPacketResult.getTtl() <= config.getMaxTtl();
     }
@@ -73,23 +62,25 @@ public class TraceRouteCommand extends PingCommand {
     protected void processReceivedPacket(ReceivedPacket receivedPacket, ProcessPacketResult processPacketResult, short identifier) {
         Packet packet = receivedPacket.getPacket();
         String reportMessage;
-        IcmpV4TimeExceededPacket timeExceededPacket = packet.get(IcmpV4TimeExceededPacket.class);
-        IpV4Packet insideIpPacket = timeExceededPacket.get(IpV4Packet.class);
-        InetAddress dstAddr = insideIpPacket.getHeader().getDstAddr();
-        IpV4Packet ipPacket = packet.get(IpV4Packet.class);
-        InetAddress hopAddress = ipPacket.getHeader().getSrcAddr();
-        reportMessage = String.format("%d %s (%s) %d ms", processPacketResult.getTtl(), hopAddress.getHostName(), hopAddress.getHostAddress(), receivedPacket.getDelay());
-        processPacketResult.setReportMessage(reportMessage);
+        if (packet != null && packet.contains(IcmpV4TimeExceededPacket.class)) {
+            IcmpV4TimeExceededPacket timeExceededPacket = packet.get(IcmpV4TimeExceededPacket.class);
+            IpV4Packet insideIpPacket = timeExceededPacket.get(IpV4Packet.class);
+            InetAddress dstAddr = insideIpPacket.getHeader().getDstAddr();
+            IpV4Packet ipPacket = packet.get(IpV4Packet.class);
+            InetAddress hopAddress = ipPacket.getHeader().getSrcAddr();
+            reportMessage = String.format("%d %s (%s) %d ns %.2f ms", processPacketResult.getTtl(), hopAddress.getHostName(), hopAddress.getHostAddress(), receivedPacket.getDelay(), (float) receivedPacket.getDelay() / 1000000);
+            processPacketResult.setReportMessage(reportMessage);
 
-        System.out.println("TRACEROUTE from: " + hopAddress.getHostName() + " TTL: " + processPacketResult.getTtl()
-                + " to host: " + remoteInetAddress.toString() + " inside dstIP: " + dstAddr.toString());
+            // Try to probe the same host again, i.e. reuse the same TTL
+            int sequence = processPacketResult.getSequence();
+            int quotient = (sequence - 1) / config.getNumberOfProbes();
+            int newTtl = quotient + 1;
+            processPacketResult.setTtl(newTtl);
+            processPacketResult.increaseSequence(1);
 
-        // Try to probe the same host again, i.e. reuse the same TTL
-        int count = processPacketResult.getCount();
-        int newTtl = (count - count % config.getNumberOfProbes()) / config.getNumberOfProbes() + 1;
-        System.out.println(String.format("Host %s Count_TTL=(%d, %d)", remoteInetAddress.getHostName(), count, newTtl));
-        processPacketResult.setTtl(newTtl);
-        processPacketResult.increaseCount(1);
+            System.out.println("TRACEROUTE from: " + hopAddress.getHostName() + " TTL: " + processPacketResult.getTtl()
+                    + " to host: " + remoteInetAddress.toString() + " inside dstIP: " + dstAddr.toString() + " other: " + String.format("New TTL quotient=%d, newTtl=%d, sequence=%d", quotient, newTtl, sequence));
+        }
     }
 
     private boolean isTheSameIpAddress(InetAddress anIp, InetAddress anotherIp) {

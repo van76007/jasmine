@@ -1,29 +1,29 @@
 package www.jasmine.network;
 
 public class ProcessPacketResult {
-    private int count;
+    private int sequence;
     private int ttl;
     private String reportMessage;
 
-    public ProcessPacketResult(int count, int ttl) {
-        this.count = count;
+    public ProcessPacketResult(int sequence, int ttl) {
+        this.sequence = sequence;
         this.ttl = ttl;
     }
 
-    public void increaseCount(int amount) {
-        this.count += amount;
+    public void increaseSequence(int amount) {
+        this.sequence += amount;
     }
 
     public void increaseTtl(int amount) {
         this.ttl += amount;
     }
 
-    public int getCount() {
-        return count;
+    public int getSequence() {
+        return sequence;
     }
 
-    public void setCount(int count) {
-        this.count = count;
+    public void setSequence(int sequence) {
+        this.sequence = sequence;
     }
 
     public int getTtl() {
@@ -46,7 +46,7 @@ public class ProcessPacketResult {
     @Override
     public String toString() {
         return "ProcessPacketResult{" +
-                "count=" + count +
+                "count=" + sequence +
                 ", ttl=" + ttl +
                 ", reportMessage='" + (reportMessage == null ? "null" : reportMessage) + '\'' +
                 '}';
