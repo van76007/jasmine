@@ -28,7 +28,5 @@ public class Main {
             e.printStackTrace();
             logger.severe(e.getMessage());
         }
-
-        System.out.println("RETURN");
     }
 }

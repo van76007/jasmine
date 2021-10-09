@@ -50,12 +50,10 @@ public class PingCommand extends AbstractNetworkCommand {
     private String loop() throws PcapNativeException, NotOpenException {
         Random random = new Random();
         short identifier = (short) random.nextInt(1 << 15);
-        System.out.println("COMMAND: " + this.getClass().getName() + " identifier: " + identifier);
 
         ReportBuilder reportBuilder = new ReportBuilder();
         Counter counter = initializeCounter();
         while(shouldContinue(counter)) {
-            System.out.println(this.getClass().getName() + " ProcessPacketResult: " + counter.toString());
             setNextTTL(counter);
             Packet packet = buildPacket(counter.getSequence(), counter.getTtl(), identifier, parameter, remoteInetAddress);
             if (counter.getSequence() > 0) {
@@ -64,7 +62,6 @@ public class PingCommand extends AbstractNetworkCommand {
             ReceivedPacket receivedPacket = sendAndReceivePacket(packet, identifier);
             processReceivedPacket(receivedPacket, counter, reportBuilder, identifier);
         }
-        System.out.println(this.getClass().getName() + " LAST ProcessPacketResult: " + reportBuilder.toString());
         return reportBuilder.getReportMessage();
     }
 
@@ -95,21 +92,13 @@ public class PingCommand extends AbstractNetworkCommand {
             if (packet.contains(IcmpV4EchoReplyPacket.class)) {
                 IpV4Packet ipPacket = packet.get(IpV4Packet.class);
                 IcmpV4EchoReplyPacket echo = packet.get(IcmpV4EchoReplyPacket.class);
-
-                InetAddress hopAddress = ipPacket.getHeader().getSrcAddr();
-                System.out.println("PING. Got IcmpV4EchoReplyPacket from: " + hopAddress.getHostName() + " my identifier: " + identifier
-                        + " their identifier: " + echo.getHeader().getIdentifier() + " icmp_seq: " + echo.getHeader().getSequenceNumberAsInt()
-                        + " for this host: " + remoteInetAddress.toString());
-
                 message = String.format("%d bytes from %s: icmp_seq=%d ttl=%d time=%.2f ms",
                         echo.length(), remoteInetAddress.getHostAddress(), counter.getSequence(),
                         ipPacket.getHeader().getTtl(), receivedPacket.getDelayInMilliseconds());
                 reportBuilder.appendReportMessage(message);
             }
         }
-
         counter.increaseSequence(1);
-        counter.increaseTtl(1);
     }
 
     /**

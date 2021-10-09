@@ -35,7 +35,6 @@ public class TraceRouteCommand extends PingCommand {
 
     @Override
     protected boolean shouldContinue(Counter counter) {
-        System.out.println(this.getClass().getName() + " counter:" + counter.toString());
         return counter.getTtl() <= config.getMaxTtl()
                 && counter.getSequence() <= config.getNumberOfProbes() * config.getMaxTtl();
     }
@@ -46,7 +45,6 @@ public class TraceRouteCommand extends PingCommand {
         int quotient = (sequence - 1) / config.getNumberOfProbes();
         int newTtl = quotient + 1;
         counter.setTtl(newTtl);
-        System.out.println(String.format("sequence=%d newTtl=%d", sequence, newTtl));
     }
 
     @Override
@@ -56,20 +54,12 @@ public class TraceRouteCommand extends PingCommand {
         if (packet != null && packet.contains(IcmpV4TimeExceededPacket.class)) {
             IpV4Packet ipPacket = packet.get(IpV4Packet.class);
             InetAddress hopAddress = ipPacket.getHeader().getSrcAddr();
-            reportMessage = String.format("%d %s (%s) %d ns %.2f ms",
+            reportMessage = String.format("%d %s (%s) %.2f ms",
                     counter.getTtl(),
                     hopAddress.getHostName(),
                     hopAddress.getHostAddress(),
-                    receivedPacket.getDelay(),
                     receivedPacket.getDelayInMilliseconds());
             reportBuilder.appendReportMessage(reportMessage);
-
-            System.out.println("TRACEROUTE to " + remoteInetAddress.toString() + " hop: " + hopAddress.getHostName() + " TTL: " + counter.getTtl());
-            if(hopAddress.getHostName().equals("192.168.1.1") && counter.getTtl() > 1) {
-                System.out.println("ROUGE PACKAGE: " + identifier + " remote IP: " + remoteInetAddress.toString());
-                System.out.println(packet.toString());
-            }
-
             counter.increaseSequence(1);
         }
     }

@@ -1,6 +1,6 @@
 package www.jasmine.network;
 
-// ToDo: Put in the config file and read from ther
+// ToDo: Put in the config file and read from there
 public class NetworkConstants {
     final static int SNAPLEN = 65536; // bytes
     final static int  READ_TIMEOUT = 200; // ms
