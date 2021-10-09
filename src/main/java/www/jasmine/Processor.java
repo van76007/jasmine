@@ -13,7 +13,6 @@ import java.util.logging.Logger;
 
 public class Processor {
     AppConfig appConfig;
-    Command command;
     Logger logger = SingletonLogger.SingletonLogger().logger;
 
     ScheduledExecutorService executorForAllHosts = Executors.newScheduledThreadPool(2);
@@ -25,25 +24,11 @@ public class Processor {
         this.appConfig = appConfig;
     }
 
-    public boolean run() {
-        if(!isValidCommand()) {
-            logger.severe("Invalid command in the configuration: " + appConfig.getCommand());
-            return false;
-        }
+    public void run() {
         NetworkParameterBuilder builder = new NetworkParameterBuilder();
         NetworkParameter networkParameter = builder.buildNetworkParameter();
 
         runNetworkCommand(appConfig.getHosts(), networkParameter, appConfig);
-        return true;
-    }
-
-    private boolean isValidCommand() {
-        try {
-            this.command = Command.valueOf(this.appConfig.getCommand());
-            return true;
-        } catch (IllegalArgumentException e) {
-            return false;
-        }
     }
 
     private void runNetworkCommand(String[] hosts, NetworkParameter networkParameter, AppConfig config) {
