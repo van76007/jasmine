@@ -58,6 +58,7 @@ public class PingCommand extends AbstractNetworkCommand {
         ProcessPacketResult processPacketResult = getProcessPacketResult();
         while(shouldContinue(processPacketResult)) {
             System.out.println(this.getClass().getName() + " ProcessPacketResult: " + processPacketResult.toString());
+            setNextTTL(processPacketResult);
             Packet packet = buildPacket(processPacketResult.getSequence(), processPacketResult.getTtl(), identifier, parameter, remoteInetAddress);
             if (processPacketResult.getSequence() > 0) {
                 pause();
@@ -67,6 +68,10 @@ public class PingCommand extends AbstractNetworkCommand {
         }
         System.out.println(this.getClass().getName() + " LAST ProcessPacketResult: " + processPacketResult.toString());
         return processPacketResult.getReportMessage();
+    }
+
+    protected void setNextTTL(ProcessPacketResult processPacketResult) {
+        processPacketResult.setTtl(100);
     }
 
     protected void pause() {

@@ -47,15 +47,33 @@ public class TraceRouteCommand extends PingCommand {
             IcmpV4TimeExceededPacket timeExceededPacket = packet.get(IcmpV4TimeExceededPacket.class);
             IpV4Packet insideIpPacket = timeExceededPacket.get(IpV4Packet.class);
             InetAddress dstAddr = insideIpPacket.getHeader().getDstAddr();
-            return isTheSameIpAddress(dstAddr, remoteInetAddress);
+            return isTheSameIpAddress(dstAddr, remoteInetAddress) && isTheSameIdentifier(timeExceededPacket, identifier);
         }
         return false;
+    }
+
+    private boolean isTheSameIdentifier(IcmpV4TimeExceededPacket timeExceededPacket, short identifier) {
+        IcmpV4EchoPacket insideIcmpV4packet = timeExceededPacket.get(IcmpV4EchoPacket.class);
+        // return insideIcmpV4packet.getHeader().getIdentifier() == identifier;
+        short id = insideIcmpV4packet.getHeader().getIdentifier();
+        System.out.println("This id=" + identifier + " vs other id=" + id);
+        return id == identifier;
     }
 
     @Override
     protected boolean shouldContinue(ProcessPacketResult processPacketResult) {
         System.out.println(this.getClass().getName() + " processPacketResult:" + processPacketResult.toString());
-        return processPacketResult.getTtl() <= config.getMaxTtl();
+        return processPacketResult.getTtl() <= config.getMaxTtl()
+                && processPacketResult.getSequence() <= config.getNumberOfProbes() * config.getMaxTtl();
+    }
+
+    @Override
+    protected void setNextTTL(ProcessPacketResult processPacketResult) {
+        int sequence = processPacketResult.getSequence();
+        int quotient = (sequence - 1) / config.getNumberOfProbes();
+        int newTtl = quotient + 1;
+        processPacketResult.setTtl(newTtl);
+        System.out.println(String.format("sequence=%d newTtl=%d", sequence, newTtl));
     }
 
     @Override
@@ -76,15 +94,11 @@ public class TraceRouteCommand extends PingCommand {
                     receivedPacket.getDelayInMilliseconds());
             processPacketResult.appendReportMessage(reportMessage);
 
-            // Try to probe the same host again, i.e. reuse the same TTL
-            int sequence = processPacketResult.getSequence();
-            int quotient = (sequence - 1) / config.getNumberOfProbes();
-            int newTtl = quotient + 1;
-            processPacketResult.setTtl(newTtl);
-            processPacketResult.increaseSequence(1);
-
             System.out.println("TRACEROUTE from: " + hopAddress.getHostName() + " TTL: " + processPacketResult.getTtl()
-                    + " to host: " + remoteInetAddress.toString() + " inside dstIP: " + dstAddr.toString() + " other: " + String.format("New TTL quotient=%d, newTtl=%d, sequence=%d", quotient, newTtl, sequence));
+                    + " to host: " + remoteInetAddress.toString() +
+                    " inside dstIP: " + dstAddr.toString());
+
+            processPacketResult.increaseSequence(1);
         }
     }
 
