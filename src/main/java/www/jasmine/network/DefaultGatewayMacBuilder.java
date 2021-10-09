@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URL;
 
-public class DefaultGatewayMacBuilder extends AbstractNetworkTask {
+public class DefaultGatewayMacBuilder extends AbstractNetworkCommand {
 
     public DefaultGatewayMacBuilder(NetworkParameter parameter) {
         super(parameter);
@@ -21,8 +21,8 @@ public class DefaultGatewayMacBuilder extends AbstractNetworkTask {
     public MacAddress buildDefaultGatewayMac() {
         MacAddress defaultGatewayMac = null;
         try {
-            setupPacketHandlers();
-            ReceivedPacket receivedPacket = sendAndReceivePacket(null);
+            setupSendPacketHandler();
+            ReceivedPacket receivedPacket = sendAndReceivePacket(null, (short)0);
             Packet packet = receivedPacket.getPacket();
             if (packet != null) {
                 EthernetPacket p = packet.get(EthernetPacket.class);
@@ -32,7 +32,7 @@ public class DefaultGatewayMacBuilder extends AbstractNetworkTask {
             e.printStackTrace();
         } finally {
             closeExecutor(executor);
-            closeHandler(receiveHandle);
+            closeHandler(sendHandle);
         }
         return defaultGatewayMac;
     }
@@ -49,7 +49,7 @@ public class DefaultGatewayMacBuilder extends AbstractNetworkTask {
     }
 
     @Override
-    protected Packet buildPacket(int count, int ttl, NetworkParameter parameter, InetAddress dstIpAddress) {
+    protected Packet buildPacket(int count, int ttl, short identifier, NetworkParameter parameter, InetAddress dstIpAddress) {
         throw new NotImplementedException();
     }
 

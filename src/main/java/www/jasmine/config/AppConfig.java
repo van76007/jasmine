@@ -6,15 +6,13 @@ public class AppConfig {
     PingConfig pingConfig;
     TracertConfig tracertConfig;
     String[] hosts;
-    String command;
     long delay;
     long shutdownPeriod;
 
-    public AppConfig(PingConfig pingConfig, TracertConfig tracertConfig, String[] hosts, String command, long delay, long shutdownPeriod) {
+    public AppConfig(PingConfig pingConfig, TracertConfig tracertConfig, String[] hosts, long delay, long shutdownPeriod) {
         this.pingConfig = pingConfig;
         this.tracertConfig = tracertConfig;
         this.hosts = hosts;
-        this.command = command;
         this.delay = delay;
         this.shutdownPeriod = shutdownPeriod;
     }
@@ -31,8 +29,6 @@ public class AppConfig {
         return hosts;
     }
 
-    public String getCommand() { return command; }
-
     public long getDelay() {
         return delay;
     }
@@ -47,7 +43,6 @@ public class AppConfig {
                 "pingConfig=" + pingConfig +
                 ", tracertConfig=" + tracertConfig +
                 ", hosts=" + Arrays.toString(hosts) +
-                ", command='" + command + '\'' +
                 ", delay=" + delay +
                 ", shutdownPeriod=" + shutdownPeriod +
                 '}';

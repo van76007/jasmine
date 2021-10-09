@@ -10,22 +10,22 @@ public class ConfigLoader {
         try (InputStream input = new FileInputStream(pathToConfigFile)) {
             Properties prop = new Properties();
             prop.load(input);
-            Long delay = Long.parseLong(prop.getProperty("delay"));
-            Long shutdownPeriod = Long.parseLong(prop.getProperty("shutdown.period"));
 
-            String command = prop.getProperty("command");
+            long delay = Long.parseLong(prop.getProperty("delay"));
+            long shutdownPeriod = Long.parseLong(prop.getProperty("shutdown.period"));
             String reportUrl = prop.getProperty("report.url");
             int pingCount = Integer.parseInt(prop.getProperty("ping.count"));
             int pingTimeout = Integer.parseInt(prop.getProperty("ping.timeout"));
             long pingWait = Long.parseLong(prop.getProperty("ping.wait"));
-            long tracertPause = Long.parseLong(prop.getProperty("tracert.pause"));
-            int tracertMaxTTL = Integer.parseInt(prop.getProperty("tracert.maxTtl"));
-            int tracertNumberOfProbes = Integer.parseInt(prop.getProperty("tracert.numberOfProbes"));
-            PingConfig pingConfig = new PingConfig(pingCount, pingTimeout, pingWait, reportUrl);
+            long traceRoutePause = Long.parseLong(prop.getProperty("traceRoute.pause"));
+            int traceRouteMaxTTL = Integer.parseInt(prop.getProperty("traceRoute.maxTtl"));
+            int traceRouteNumberOfProbes = Integer.parseInt(prop.getProperty("traceRoute.numberOfProbes"));
 
-            TracertConfig tracertConfig = new TracertConfig(tracertPause, tracertMaxTTL, tracertNumberOfProbes, reportUrl);
+            PingConfig pingConfig = new PingConfig(pingCount, pingTimeout, pingWait, reportUrl);
+            TracertConfig tracertConfig = new TracertConfig(traceRoutePause, traceRouteMaxTTL, traceRouteNumberOfProbes, reportUrl);
             String[] hosts = new String[] { prop.getProperty("host.site1"), prop.getProperty("host.site2") };
-            return new AppConfig(pingConfig, tracertConfig, hosts, command, delay, shutdownPeriod);
+
+            return new AppConfig(pingConfig, tracertConfig, hosts, delay, shutdownPeriod);
         }
     }
 }

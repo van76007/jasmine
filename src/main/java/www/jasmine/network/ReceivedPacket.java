@@ -4,7 +4,7 @@ import org.pcap4j.packet.Packet;
 
 public class ReceivedPacket {
     Packet packet;
-    long delay;
+    long delay; // nanoseconds
 
     public ReceivedPacket(Packet packet, long delay) {
         this.packet = packet;
@@ -17,5 +17,9 @@ public class ReceivedPacket {
 
     public long getDelay() {
         return delay;
+    }
+
+    public float getDelayInMilliseconds() {
+        return (float) delay / 1000000;
     }
 }

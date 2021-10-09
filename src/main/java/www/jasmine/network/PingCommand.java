@@ -11,18 +11,20 @@ import www.jasmine.report.Report;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.util.Random;
 
-public class Ping extends AbstractNetworkTask {
+public class PingCommand extends AbstractNetworkCommand {
+    final static int TTL = 100;
     PingConfig config;
     InetAddress remoteInetAddress;
     String timeoutMessage;
 
-    public Ping(NetworkParameter parameter, InetAddress remoteInetAddress) {
+    public PingCommand(NetworkParameter parameter, InetAddress remoteInetAddress) {
         super(parameter);
         this.remoteInetAddress = remoteInetAddress;
     }
 
-    public Ping(NetworkParameter parameter, InetAddress remoteInetAddress, PingConfig config) {
+    public PingCommand(NetworkParameter parameter, InetAddress remoteInetAddress, PingConfig config) {
         this(parameter, remoteInetAddress);
         this.config = config;
         this.timeoutMessage = String.format("Request timeout for icmp_seq %d", config.getCount());
@@ -32,7 +34,7 @@ public class Ping extends AbstractNetworkTask {
     public Report ping() {
         Report report = null;
         try {
-            setupPacketHandlers();
+            setupSendPacketHandler();
             String reportMessage = loop();
             report = new Report(remoteInetAddress.getHostAddress(),
                     reportMessage == null ? timeoutMessage : reportMessage);
@@ -40,27 +42,39 @@ public class Ping extends AbstractNetworkTask {
             e.printStackTrace();
         } finally {
             closeExecutor(executor);
-            closeHandler(receiveHandle);
+            closeHandler(sendHandle);
         }
         return report;
     }
 
-    protected ProcessPacketResult getProcessPacketResult() {
-        return new ProcessPacketResult(false, 0, 100);
-    }
+    private String loop() throws PcapNativeException, NotOpenException {
+        Random random = new Random();
+        short identifier = (short) random.nextInt(1 << 15);
 
-    private String loop() {
-        ProcessPacketResult processPacketResult = getProcessPacketResult();
-        while(shouldSendPacket(processPacketResult)) {
-            System.out.println("ProcessPacketResult: " + processPacketResult.toString());
-            Packet packet = buildPacket(processPacketResult.getCount(), processPacketResult.getTtl(), parameter, remoteInetAddress);
-            if (processPacketResult.getCount() > 0) {
+        ReportBuilder reportBuilder = new ReportBuilder();
+        Counter counter = initializeCounter();
+        while(shouldContinue(counter)) {
+            setNextTTL(counter);
+            Packet packet = buildPacket(counter.getSequence(), counter.getTtl(), identifier, parameter, remoteInetAddress);
+            if (counter.getSequence() > 0) {
                 pause();
             }
-            ReceivedPacket receivedPacket = sendAndReceivePacket(packet);
-            processReceivedPacket(receivedPacket, processPacketResult);
+            ReceivedPacket receivedPacket = sendAndReceivePacket(packet, identifier);
+            processReceivedPacket(receivedPacket, counter, reportBuilder, identifier);
         }
-        return processPacketResult.getReportMessage();
+        return reportBuilder.getReportMessage();
+    }
+
+    protected Counter initializeCounter() {
+        return new Counter(0, TTL);
+    }
+
+    protected boolean shouldContinue(Counter counter) {
+        return counter.getSequence() < config.getCount();
+    }
+
+    protected void setNextTTL(Counter counter) {
+        counter.setTtl(TTL);
     }
 
     protected void pause() {
@@ -71,26 +85,36 @@ public class Ping extends AbstractNetworkTask {
         }
     }
 
-    protected boolean shouldSendPacket(ProcessPacketResult processPacketResult) {
-        return !processPacketResult.isLastResult() && processPacketResult.getCount() < config.getCount();
-    }
-
-    protected void processReceivedPacket(ReceivedPacket receivedPacket, ProcessPacketResult processPacketResult) {
-        String message = null;
+    protected void processReceivedPacket(ReceivedPacket receivedPacket, Counter counter, ReportBuilder reportBuilder, short identifier) {
+        String message;
         Packet packet = receivedPacket.getPacket();
         if (packet != null) {
             if (packet.contains(IcmpV4EchoReplyPacket.class)) {
-                IpV4Packet p = packet.get(IpV4Packet.class);
-                IcmpV4EchoReplyPacket pp = packet.get(IcmpV4EchoReplyPacket.class);
-                message = String.format("%d bytes from %s: icmp_seq=%d ttl=%d time=%d ms",
-                        pp.length(), remoteInetAddress.getHostAddress(), pp.getHeader().getSequenceNumber(),
-                        p.getHeader().getTtl(), receivedPacket.getDelay());
+                IpV4Packet ipPacket = packet.get(IpV4Packet.class);
+                IcmpV4EchoReplyPacket echo = packet.get(IcmpV4EchoReplyPacket.class);
+                message = String.format("%d bytes from %s: icmp_seq=%d ttl=%d time=%.2f ms",
+                        echo.length(), remoteInetAddress.getHostAddress(), counter.getSequence(),
+                        ipPacket.getHeader().getTtl(), receivedPacket.getDelayInMilliseconds());
+                reportBuilder.appendReportMessage(message);
             }
         }
-        processPacketResult.setLastResult(false);
-        processPacketResult.increaseCount(1);
-        processPacketResult.increaseTtl(1);
-        processPacketResult.setReportMessage(message);
+        counter.increaseSequence(1);
+    }
+
+    /**
+     * Filter the received packet from the network interface
+     * @param packet The received packet from the network interface
+     * @return true if and only if:
+     *                            1. It is ICMP reply package
+     *                            2. The ICMP packet identifier is the same as the one of the ICMP echo packet
+     */
+    @Override
+    protected boolean isExpectedReply(Packet packet, short identifier) {
+        if (packet != null && packet.contains(IcmpV4EchoReplyPacket.class)) {
+            IcmpV4EchoReplyPacket echo = packet.get(IcmpV4EchoReplyPacket.class);
+            return echo.getHeader().getIdentifier() == identifier;
+        }
+        return false;
     }
 
     @Override
@@ -105,26 +129,25 @@ public class Ping extends AbstractNetworkTask {
     }
 
     @Override
-    protected Packet buildPacket(int count, int ttl, NetworkParameter parameter, InetAddress dstIpAddress) {
+    protected Packet buildPacket(int count, int ttl, short identifier, NetworkParameter parameter, InetAddress dstIpAddress) {
         MacAddress srcMacAddress = parameter.getLocalMac();
         MacAddress dstMacAddress = parameter.getDefaultGatewayMac();
         InetAddress srcIpAddress = parameter.getLocalIP();
-        IcmpV4EchoPacket.Builder echoBuilder = getIcmpEchoPacketBuilder((short) count);
+        IcmpV4EchoPacket.Builder echoBuilder = getIcmpEchoPacketBuilder((short) count, identifier);
         IcmpV4CommonPacket.Builder icmpV4CommonBuilder = getIcmpPacketBuilder(echoBuilder);
         IpV4Packet.Builder ipV4Builder = getIpPacketBuilder((short) count, ttl, (Inet4Address) srcIpAddress, (Inet4Address) dstIpAddress, icmpV4CommonBuilder);
         EthernetPacket.Builder etherBuilder = getEthernetPacketBuilder(srcMacAddress, dstMacAddress, ipV4Builder);
         return etherBuilder.build();
     }
 
-    private IcmpV4EchoPacket.Builder getIcmpEchoPacketBuilder(short count) {
+    private IcmpV4EchoPacket.Builder getIcmpEchoPacketBuilder(short count, short identifier) {
         byte[] echoData = new byte[48];
         for (int i = 0; i < echoData.length; i++) {
             echoData[i] = (byte) i;
         }
-
         IcmpV4EchoPacket.Builder echoBuilder = new IcmpV4EchoPacket.Builder();
         echoBuilder
-                .identifier(count)
+                .identifier(identifier)
                 .sequenceNumber(count)
                 .payloadBuilder(new UnknownPacket.Builder().rawData(echoData));
         return echoBuilder;
