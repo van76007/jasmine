@@ -39,7 +39,6 @@ public class Reporter {
             String response = uploader.uploadReport(url, jsonData);
             logger.info(response);
         } catch (IOException e) {
-            e.printStackTrace();
             logger.severe(e.getMessage());
         }
     }

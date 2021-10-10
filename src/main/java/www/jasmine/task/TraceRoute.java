@@ -27,7 +27,7 @@ public class TraceRoute extends AbstractTask {
             TraceRouteCommand traceRoute = new TraceRouteCommand(parameter, host, config);
             report = traceRoute.trace();
         } catch (UnknownHostException e) {
-            e.printStackTrace();
+            logger.severe(e.getMessage());
         }
         if (report == null) {
             return new Report(host, "Unable to trace route to host: " + host, Command.TRACEROUTE);

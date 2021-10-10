@@ -5,14 +5,18 @@ import org.pcap4j.core.PcapNativeException;
 import org.pcap4j.core.PcapNetworkInterface;
 import org.pcap4j.core.Pcaps;
 import org.pcap4j.util.MacAddress;
+import www.jasmine.SingletonLogger;
 
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class NetworkParameterBuilder {
+    Logger logger = SingletonLogger.SingletonLogger().logger;
+
     public NetworkParameter buildNetworkParameter() {
         NetworkParameter parameter = null;
         try {
@@ -29,7 +33,7 @@ public class NetworkParameterBuilder {
                 parameter.setDefaultGatewayMac(defaultGatewayMac);
             }
         } catch (UnknownHostException e) {
-            e.printStackTrace();
+            logger.severe(e.getMessage());
         }
         return parameter;
     }
@@ -56,7 +60,7 @@ public class NetworkParameterBuilder {
                 }
             }
         } catch (PcapNativeException | IndexOutOfBoundsException e) {
-            e.printStackTrace();
+            logger.severe(e.getMessage());
         }
         return null;
     }

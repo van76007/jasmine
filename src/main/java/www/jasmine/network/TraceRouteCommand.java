@@ -20,7 +20,8 @@ public class TraceRouteCommand extends PingCommand {
 
     public Report trace() {
         String reportMessage = sendICMPPackets();
-        return new Report(host, reportMessage == null ? timeoutMessage : reportMessage, Command.TRACEROUTE);
+        String finalReportMessage = reportMessage == null ? timeoutMessage : reportMessage;
+        return new Report(host, finalReportMessage, Command.TRACEROUTE);
     }
 
     @Override
@@ -33,7 +34,7 @@ public class TraceRouteCommand extends PingCommand {
         try {
             Thread.sleep(config.getPause());
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            logger.severe(e.getMessage());
         }
     }
 

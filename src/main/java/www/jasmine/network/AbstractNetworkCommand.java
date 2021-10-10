@@ -3,14 +3,17 @@ package www.jasmine.network;
 import org.pcap4j.core.*;
 import org.pcap4j.packet.EthernetPacket;
 import org.pcap4j.packet.Packet;
+import www.jasmine.SingletonLogger;
 
 import java.net.InetAddress;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Logger;
 
 import static www.jasmine.network.NetworkConstants.*;
 
 public abstract class AbstractNetworkCommand {
+    Logger logger = SingletonLogger.SingletonLogger().logger;
     NetworkParameter parameter;
     PcapHandle sendHandle;
     String bpfExpression;
@@ -37,14 +40,13 @@ public abstract class AbstractNetworkCommand {
                 pRef.set(p);
             }
         };
-        Task receiveTask = new Task(receiveHandle, listener, 1);
-        Future receiveFuture = executor.submit(receiveTask);
+        ReceivingPacketTask receivingPacketTask = new ReceivingPacketTask(receiveHandle, listener, 1);
+        Future receiveFuture = executor.submit(receivingPacketTask);
         long start = sendPacket(packet);
         try {
             receiveFuture.get(WAIT_FOR_RESPONSE_TIMEOUT, TimeUnit.MILLISECONDS);
-        }
-        catch (Exception e) {
-            e.printStackTrace();
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            logger.warning(e.getMessage() != null ? e.getMessage() : "Receive packet timed out");
         }
         long delay = System.nanoTime() - start;
         closeHandler(receiveHandle);
@@ -67,13 +69,13 @@ public abstract class AbstractNetworkCommand {
                 handler.breakLoop();
             }
             catch (Exception e) {
-                e.printStackTrace();
+                logger.severe(e.getMessage());
             }
             try {
                 handler.close();
             }
             catch (Exception e) {
-                e.printStackTrace();
+                logger.severe(e.getMessage());
             }
         }
     }

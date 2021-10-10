@@ -27,7 +27,7 @@ public class PingByICMP extends AbstractTask {
             PingCommand ping = new PingCommand(parameter, host, config);
             report = ping.ping();
         } catch (UnknownHostException e) {
-            e.printStackTrace();
+            logger.severe(e.getMessage());
         }
         if (report == null) {
             return new Report(host, "Unknown host to ping", Command.PING_ICMP);
