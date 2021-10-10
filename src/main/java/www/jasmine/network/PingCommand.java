@@ -11,23 +11,26 @@ import www.jasmine.report.Report;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Random;
 
 public class PingCommand extends AbstractNetworkCommand {
     final static int TTL = 100;
     PingConfig config;
+    String host;
     InetAddress remoteInetAddress;
     String timeoutMessage;
 
-    public PingCommand(NetworkParameter parameter, InetAddress remoteInetAddress) {
+    protected PingCommand(NetworkParameter parameter, String host) throws UnknownHostException {
         super(parameter);
-        this.remoteInetAddress = remoteInetAddress;
+        this.host = host;
+        this.remoteInetAddress = InetAddress.getByName(host);
     }
 
-    public PingCommand(NetworkParameter parameter, InetAddress remoteInetAddress, PingConfig config) {
-        this(parameter, remoteInetAddress);
+    public PingCommand(NetworkParameter parameter, String host, PingConfig config) throws UnknownHostException {
+        this(parameter, host);
         this.config = config;
-        this.timeoutMessage = String.format("Request timeout for icmp_seq %d", config.getCount());
+        this.timeoutMessage = String.format("Ping by ICMP timeout for icmp_seq %d", config.getCount());
         this.bpfExpression = "icmp and ether dst " + Pcaps.toBpfString(parameter.getLocalMac()) + " and src host " + remoteInetAddress.getHostAddress();
     }
 
@@ -36,8 +39,7 @@ public class PingCommand extends AbstractNetworkCommand {
         try {
             setupSendPacketHandler();
             String reportMessage = loop();
-            report = new Report(remoteInetAddress.getHostAddress(),
-                    reportMessage == null ? timeoutMessage : reportMessage);
+            report = new Report(host, reportMessage == null ? timeoutMessage : reportMessage);
         } catch(PcapNativeException | NotOpenException e) {
             e.printStackTrace();
         } finally {

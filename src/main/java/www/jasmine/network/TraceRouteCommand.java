@@ -4,18 +4,15 @@ import org.pcap4j.packet.*;
 import www.jasmine.config.TracertConfig;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 public class TraceRouteCommand extends PingCommand {
     TracertConfig config;
 
-    public TraceRouteCommand(NetworkParameter parameter, InetAddress remoteInetAddress) {
-        super(parameter, remoteInetAddress);
-    }
-
-    public TraceRouteCommand(NetworkParameter parameter, InetAddress remoteInetAddress, TracertConfig config) {
-        this(parameter, remoteInetAddress);
+    public TraceRouteCommand(NetworkParameter parameter, String host, TracertConfig config) throws UnknownHostException {
+        super(parameter, host);
         this.config = config;
-        this.timeoutMessage = String.format("Request timeout for max_ttl %d", config.getMaxTtl());
+        this.timeoutMessage = String.format("Trace route timeout for max_ttl %d", config.getMaxTtl());
         this.bpfExpression = "icmp and dst host " + parameter.getLocalIP().getHostAddress();
     }
 
