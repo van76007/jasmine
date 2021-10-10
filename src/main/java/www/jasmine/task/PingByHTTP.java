@@ -17,7 +17,7 @@ public class PingByHTTP extends AbstractTask {
     }
 
     @Override
-    public void run() {
+    public Report run() {
         logger.info(String.format("To run: %s on host: %s with config timeout %d ms", command.name(), host, config.getTimeout()));
 
         boolean isReachable;
@@ -29,12 +29,7 @@ public class PingByHTTP extends AbstractTask {
             isReachable = false;
         }
         long delay = (System.nanoTime() - tStart) / 1000000;
-        report(new Report(host, String.format("is reachable %s in %d ms", isReachable, delay)));
-    }
-
-    @Override
-    void report(Report report) {
-        logger.info(String.format("To report result of %s about host: %s data: %s", command, report.getHost(), report.getMessage()));
+        return new Report(host, String.format("%s is reachable %s in %d ms", host, isReachable, delay), Command.PING_HTTP);
     }
 
     private boolean isHostReachable(String host) throws IOException {

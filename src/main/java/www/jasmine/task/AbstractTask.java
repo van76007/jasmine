@@ -19,7 +19,5 @@ public abstract class AbstractTask {
         this.parameter = parameter;
     }
 
-    public abstract void run();
-
-    abstract void report(Report report);
+    public abstract Report run();
 }

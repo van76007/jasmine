@@ -21,11 +21,12 @@ public class ConfigLoader {
             int traceRouteMaxTTL = Integer.parseInt(prop.getProperty("traceRoute.maxTtl"));
             int traceRouteNumberOfProbes = Integer.parseInt(prop.getProperty("traceRoute.numberOfProbes"));
 
-            PingConfig pingConfig = new PingConfig(pingCount, pingTimeout, pingWait, reportUrl);
-            TracertConfig tracertConfig = new TracertConfig(traceRoutePause, traceRouteMaxTTL, traceRouteNumberOfProbes, reportUrl);
-            String[] hosts = new String[] { prop.getProperty("host.site1"), prop.getProperty("host.site2") };
+            PingConfig pingConfig = new PingConfig(pingCount, pingTimeout, pingWait);
+            TracertConfig tracertConfig = new TracertConfig(traceRoutePause, traceRouteMaxTTL, traceRouteNumberOfProbes);
+            // String[] hosts = new String[] { prop.getProperty("host.site1"), prop.getProperty("host.site2") };
+            String[] hosts = new String[] { "github.agoda.com" };
 
-            return new AppConfig(pingConfig, tracertConfig, hosts, delay, shutdownPeriod);
+            return new AppConfig(pingConfig, tracertConfig, hosts, delay, shutdownPeriod, reportUrl);
         }
     }
 }

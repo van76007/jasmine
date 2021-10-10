@@ -4,47 +4,54 @@ import org.pcap4j.core.NotOpenException;
 import org.pcap4j.core.PcapNativeException;
 import org.pcap4j.core.Pcaps;
 import org.pcap4j.packet.*;
-import org.pcap4j.packet.namednumber.*;
 import org.pcap4j.util.MacAddress;
+import www.jasmine.Command;
 import www.jasmine.config.PingConfig;
 import www.jasmine.report.Report;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Random;
 
 public class PingCommand extends AbstractNetworkCommand {
     final static int TTL = 100;
     PingConfig config;
+    String host;
     InetAddress remoteInetAddress;
     String timeoutMessage;
 
-    public PingCommand(NetworkParameter parameter, InetAddress remoteInetAddress) {
+    protected PingCommand(NetworkParameter parameter, String host) throws UnknownHostException {
         super(parameter);
-        this.remoteInetAddress = remoteInetAddress;
+        this.host = host;
+        this.remoteInetAddress = InetAddress.getByName(host);
     }
 
-    public PingCommand(NetworkParameter parameter, InetAddress remoteInetAddress, PingConfig config) {
-        this(parameter, remoteInetAddress);
+    public PingCommand(NetworkParameter parameter, String host, PingConfig config) throws UnknownHostException {
+        this(parameter, host);
         this.config = config;
-        this.timeoutMessage = String.format("Request timeout for icmp_seq %d", config.getCount());
+        this.timeoutMessage = String.format("Ping by ICMP timeout for icmp_seq %d", config.getCount());
         this.bpfExpression = "icmp and ether dst " + Pcaps.toBpfString(parameter.getLocalMac()) + " and src host " + remoteInetAddress.getHostAddress();
     }
 
     public Report ping() {
-        Report report = null;
+        String reportMessage = sendICMPPackets();
+        String finalReportMessage = reportMessage == null ? timeoutMessage : reportMessage;
+        return new Report(host, finalReportMessage, Command.PING_ICMP);
+    }
+
+    protected String sendICMPPackets() {
+        String reportMessage = null;
         try {
             setupSendPacketHandler();
-            String reportMessage = loop();
-            report = new Report(remoteInetAddress.getHostAddress(),
-                    reportMessage == null ? timeoutMessage : reportMessage);
+            reportMessage = loop();
         } catch(PcapNativeException | NotOpenException e) {
             e.printStackTrace();
         } finally {
             closeExecutor(executor);
             closeHandler(sendHandle);
         }
-        return report;
+        return reportMessage;
     }
 
     private String loop() throws PcapNativeException, NotOpenException {
@@ -54,7 +61,6 @@ public class PingCommand extends AbstractNetworkCommand {
         ReportBuilder reportBuilder = new ReportBuilder();
         Counter counter = initializeCounter();
         while(shouldContinue(counter)) {
-            // setNextTTL(counter);
             Packet packet = buildPacket(counter.getSequence(), counter.getTtl(), identifier, parameter, remoteInetAddress);
             if (counter.getSequence() > 0) {
                 pause();
@@ -72,11 +78,7 @@ public class PingCommand extends AbstractNetworkCommand {
     protected boolean shouldContinue(Counter counter) {
         return counter.getSequence() < config.getCount();
     }
-    /*
-    protected void setNextTTL(Counter counter) {
-        counter.setTtl(TTL);
-    }
-    */
+
     protected void pause() {
         try {
             Thread.sleep(config.getWait());
@@ -97,6 +99,9 @@ public class PingCommand extends AbstractNetworkCommand {
                         ipPacket.getHeader().getTtl(), receivedPacket.getDelayInMilliseconds());
                 reportBuilder.appendReportMessage(message);
             }
+        } else {
+            message = String.format("Request timeout for icmp_seq %d", counter.getSequence());
+            reportBuilder.appendReportMessage(message);
         }
         setNextCounter(counter);
     }
@@ -137,60 +142,10 @@ public class PingCommand extends AbstractNetworkCommand {
         MacAddress srcMacAddress = parameter.getLocalMac();
         MacAddress dstMacAddress = parameter.getDefaultGatewayMac();
         InetAddress srcIpAddress = parameter.getLocalIP();
-        IcmpV4EchoPacket.Builder echoBuilder = getIcmpEchoPacketBuilder((short) count, identifier);
-        IcmpV4CommonPacket.Builder icmpV4CommonBuilder = getIcmpPacketBuilder(echoBuilder);
-        IpV4Packet.Builder ipV4Builder = getIpPacketBuilder((short) count, ttl, (Inet4Address) srcIpAddress, (Inet4Address) dstIpAddress, icmpV4CommonBuilder);
-        EthernetPacket.Builder etherBuilder = getEthernetPacketBuilder(srcMacAddress, dstMacAddress, ipV4Builder);
+        IcmpV4EchoPacket.Builder echoBuilder = PacketBuilderFactory.getIcmpEchoPacketBuilder((short) count, identifier);
+        IcmpV4CommonPacket.Builder icmpV4CommonBuilder = PacketBuilderFactory.getIcmpPacketBuilder(echoBuilder);
+        IpV4Packet.Builder ipV4Builder = PacketBuilderFactory.getIpPacketBuilder((short) count, ttl, (Inet4Address) srcIpAddress, (Inet4Address) dstIpAddress, icmpV4CommonBuilder);
+        EthernetPacket.Builder etherBuilder = PacketBuilderFactory.getEthernetPacketBuilder(srcMacAddress, dstMacAddress, ipV4Builder);
         return etherBuilder.build();
-    }
-
-    private IcmpV4EchoPacket.Builder getIcmpEchoPacketBuilder(short count, short identifier) {
-        byte[] echoData = new byte[48];
-        for (int i = 0; i < echoData.length; i++) {
-            echoData[i] = (byte) i;
-        }
-        IcmpV4EchoPacket.Builder echoBuilder = new IcmpV4EchoPacket.Builder();
-        echoBuilder
-                .identifier(identifier)
-                .sequenceNumber(count)
-                .payloadBuilder(new UnknownPacket.Builder().rawData(echoData));
-        return echoBuilder;
-    }
-
-    private IcmpV4CommonPacket.Builder getIcmpPacketBuilder(IcmpV4EchoPacket.Builder echoBuilder) {
-        IcmpV4CommonPacket.Builder icmpV4CommonBuilder = new IcmpV4CommonPacket.Builder();
-        icmpV4CommonBuilder
-                .type(IcmpV4Type.ECHO)
-                .code(IcmpV4Code.NO_CODE)
-                .payloadBuilder(echoBuilder)
-                .correctChecksumAtBuild(true);
-        return icmpV4CommonBuilder;
-    }
-
-    private IpV4Packet.Builder getIpPacketBuilder(short count, int ttl, Inet4Address srcIpAddress, Inet4Address dstIpAddress, IcmpV4CommonPacket.Builder icmpV4CommonBuilder) {
-        IpV4Packet.Builder ipV4Builder = new IpV4Packet.Builder();
-        ipV4Builder
-                .version(IpVersion.IPV4)
-                .tos(IpV4Rfc791Tos.newInstance((byte) 0))
-                .ttl((byte) ttl)
-                .identification(count)
-                .protocol(IpNumber.ICMPV4)
-                .srcAddr(srcIpAddress)
-                .dstAddr(dstIpAddress)
-                .payloadBuilder(icmpV4CommonBuilder)
-                .correctChecksumAtBuild(true)
-                .correctLengthAtBuild(true);
-        return ipV4Builder;
-    }
-
-    private EthernetPacket.Builder getEthernetPacketBuilder(MacAddress srcMacAddress, MacAddress dstMacAddress, IpV4Packet.Builder ipV4Builder) {
-        EthernetPacket.Builder etherBuilder = new EthernetPacket.Builder();
-        etherBuilder
-                .dstAddr(dstMacAddress)
-                .srcAddr(srcMacAddress)
-                .type(EtherType.IPV4)
-                .payloadBuilder(ipV4Builder)
-                .paddingAtBuild(true);
-        return etherBuilder;
     }
 }

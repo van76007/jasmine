@@ -4,34 +4,25 @@ public class PingConfig {
     int count;
     long wait;
     int timeout;
-    String reportURL;
 
-    public PingConfig(int count, int timeout, long wait, String reportURL) {
+    public PingConfig(int count, int timeout, long wait) {
         this.count = count;
         this.timeout = timeout;
         this.wait = wait;
-        this.reportURL = reportURL;
     }
 
-    public int getCount() {
-        return count;
-    }
+    public int getCount() { return count; }
 
-    public int getTimeout() {
-        return timeout;
-    }
+    public int getTimeout() { return timeout; }
 
-    public long getWait() {
-        return wait;
-    }
+    public long getWait() { return wait; }
 
     @Override
     public String toString() {
         return "PingConfig{" +
                 "count=" + count +
-                ", timeout=" + timeout +
                 ", wait=" + wait +
-                ", reportURL='" + reportURL + '\'' +
+                ", timeout=" + timeout +
                 '}';
     }
 }
