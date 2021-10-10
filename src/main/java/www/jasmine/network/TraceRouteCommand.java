@@ -1,7 +1,9 @@
 package www.jasmine.network;
 
 import org.pcap4j.packet.*;
+import www.jasmine.Command;
 import www.jasmine.config.TracertConfig;
+import www.jasmine.report.Report;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -14,6 +16,11 @@ public class TraceRouteCommand extends PingCommand {
         this.config = config;
         this.timeoutMessage = String.format("Trace route timeout for max_ttl %d", config.getMaxTtl());
         this.bpfExpression = "icmp and dst host " + parameter.getLocalIP().getHostAddress();
+    }
+
+    public Report trace() {
+        String reportMessage = sendICMPPackets();
+        return new Report(host, reportMessage == null ? timeoutMessage : reportMessage, Command.TRACEROUTE);
     }
 
     @Override

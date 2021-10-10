@@ -29,7 +29,7 @@ public class PingByHTTP extends AbstractTask {
             isReachable = false;
         }
         long delay = (System.nanoTime() - tStart) / 1000000;
-        return new Report(host, String.format("is reachable %s in %d ms", isReachable, delay));
+        return new Report(host, String.format("is reachable %s in %d ms", isReachable, delay), Command.PING_HTTP);
     }
 
     private boolean isHostReachable(String host) throws IOException {

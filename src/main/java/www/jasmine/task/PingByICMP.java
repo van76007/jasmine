@@ -30,7 +30,7 @@ public class PingByICMP extends AbstractTask {
             e.printStackTrace();
         }
         if (report == null) {
-            return new Report(host, "Unknown host to ping");
+            return new Report(host, "Unknown host to ping", Command.PING_ICMP);
         } else {
             return report;
         }

@@ -6,6 +6,7 @@ import org.pcap4j.core.Pcaps;
 import org.pcap4j.packet.*;
 import org.pcap4j.packet.namednumber.*;
 import org.pcap4j.util.MacAddress;
+import www.jasmine.Command;
 import www.jasmine.config.PingConfig;
 import www.jasmine.report.Report;
 
@@ -35,18 +36,22 @@ public class PingCommand extends AbstractNetworkCommand {
     }
 
     public Report ping() {
-        Report report = null;
+        String reportMessage = sendICMPPackets();
+        return new Report(host, reportMessage == null ? timeoutMessage : reportMessage, Command.PING_ICMP);
+    }
+
+    protected String sendICMPPackets() {
+        String reportMessage = null;
         try {
             setupSendPacketHandler();
-            String reportMessage = loop();
-            report = new Report(host, reportMessage == null ? timeoutMessage : reportMessage);
+            reportMessage = loop();
         } catch(PcapNativeException | NotOpenException e) {
             e.printStackTrace();
         } finally {
             closeExecutor(executor);
             closeHandler(sendHandle);
         }
-        return report;
+        return reportMessage;
     }
 
     private String loop() throws PcapNativeException, NotOpenException {
@@ -56,7 +61,6 @@ public class PingCommand extends AbstractNetworkCommand {
         ReportBuilder reportBuilder = new ReportBuilder();
         Counter counter = initializeCounter();
         while(shouldContinue(counter)) {
-            // setNextTTL(counter);
             Packet packet = buildPacket(counter.getSequence(), counter.getTtl(), identifier, parameter, remoteInetAddress);
             if (counter.getSequence() > 0) {
                 pause();
@@ -74,11 +78,7 @@ public class PingCommand extends AbstractNetworkCommand {
     protected boolean shouldContinue(Counter counter) {
         return counter.getSequence() < config.getCount();
     }
-    /*
-    protected void setNextTTL(Counter counter) {
-        counter.setTtl(TTL);
-    }
-    */
+
     protected void pause() {
         try {
             Thread.sleep(config.getWait());

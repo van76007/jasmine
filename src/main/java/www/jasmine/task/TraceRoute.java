@@ -25,12 +25,12 @@ public class TraceRoute extends AbstractTask {
         Report report = null;
         try {
             TraceRouteCommand traceRoute = new TraceRouteCommand(parameter, host, config);
-            report = traceRoute.ping();
+            report = traceRoute.trace();
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
         if (report == null) {
-            return new Report(host, "Unable to trace route to host: " + host);
+            return new Report(host, "Unable to trace route to host: " + host, Command.TRACEROUTE);
         } else {
             return report;
         }

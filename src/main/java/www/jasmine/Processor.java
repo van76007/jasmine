@@ -60,7 +60,7 @@ public class Processor {
         AbstractTask[] tasks = new AbstractTask[] { pingByHTTP, pingByICMP, traceRoute };
         Runnable runnable = () -> {
             List<Report> reports = Arrays.stream(tasks).sequential().map(AbstractTask::run).collect(Collectors.toList());
-            reporter.forwardReports(reports);
+            reporter.forwardReports(host, reports);
         };
         executorForAllTasks.scheduleAtFixedRate(runnable, 0, config.getDelay(), TimeUnit.MILLISECONDS);
     }
