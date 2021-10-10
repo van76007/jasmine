@@ -68,6 +68,7 @@ public class Reporter {
         LocalDateTime now = LocalDateTime.now();
         try {
             Files.write(path, dateTimeFormatter.format(now).getBytes(), StandardOpenOption.APPEND);
+            Files.write(path, System.lineSeparator().getBytes(), StandardOpenOption.APPEND);
             Files.write(path, jsonData.getBytes(), StandardOpenOption.APPEND);
             Files.write(path, System.lineSeparator().getBytes(), StandardOpenOption.APPEND);
         } catch (IOException e) {
