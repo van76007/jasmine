@@ -36,7 +36,8 @@ public class PingCommand extends AbstractNetworkCommand {
 
     public Report ping() {
         String reportMessage = sendICMPPackets();
-        return new Report(host, reportMessage == null ? timeoutMessage : reportMessage, Command.PING_ICMP);
+        String finalReportMessage = reportMessage == null ? timeoutMessage : reportMessage;
+        return new Report(host, finalReportMessage, Command.PING_ICMP);
     }
 
     protected String sendICMPPackets() {
@@ -98,6 +99,9 @@ public class PingCommand extends AbstractNetworkCommand {
                         ipPacket.getHeader().getTtl(), receivedPacket.getDelayInMilliseconds());
                 reportBuilder.appendReportMessage(message);
             }
+        } else {
+            message = String.format("Request timeout for icmp_seq %d", counter.getSequence());
+            reportBuilder.appendReportMessage(message);
         }
         setNextCounter(counter);
     }
