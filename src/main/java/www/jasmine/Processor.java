@@ -47,7 +47,7 @@ public class Processor {
                 resultFuture.cancel(true);
                 executorForAllTasks.shutdown();
                 executorForAllHosts.shutdown();
-                logger.info("Finish running network commands for a host");
+                logger.info("Finish running network commands for a host: " + host);
             }, appConfig.getShutdownPeriod(), TimeUnit.SECONDS);
         }
         scheduledShutdownExecutor.shutdown();
