@@ -9,14 +9,16 @@ public class AppConfig {
     long delay;
     long shutdownPeriod;
     String reportURL;
+    String reportLogFilePath;
 
-    public AppConfig(PingConfig pingConfig, TracertConfig tracertConfig, String[] hosts, long delay, long shutdownPeriod, String reportURL) {
+    public AppConfig(PingConfig pingConfig, TracertConfig tracertConfig, String[] hosts, long delay, long shutdownPeriod, String reportURL, String reportLogFilePath) {
         this.pingConfig = pingConfig;
         this.tracertConfig = tracertConfig;
         this.hosts = hosts;
         this.delay = delay;
         this.shutdownPeriod = shutdownPeriod;
         this.reportURL = reportURL;
+        this.reportLogFilePath = reportLogFilePath;
     }
 
     public PingConfig getPingConfig() { return pingConfig; }
@@ -37,6 +39,8 @@ public class AppConfig {
 
     public String getReportURL() { return reportURL; }
 
+    public String getReportLogFilePath() { return reportLogFilePath; }
+
     @Override
     public String toString() {
         return "AppConfig{" +
@@ -46,6 +50,7 @@ public class AppConfig {
                 ", delay=" + delay +
                 ", shutdownPeriod=" + shutdownPeriod +
                 ", reportURL='" + reportURL + '\'' +
+                ", logFile='" + reportLogFilePath + '\'' +
                 '}';
     }
 }

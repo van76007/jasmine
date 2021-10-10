@@ -20,7 +20,7 @@ public class TraceRoute extends AbstractTask {
 
     @Override
     public Report run() {
-        logger.info(String.format("To run: %s on hosts: %s with config timeout %d ms", command.name(), host, config.getPause()));
+        logger.info(String.format("To run: %s on hosts: %s with config pause %d ms between probing the same hop", command.name(), host, config.getPause()));
 
         Report report = null;
         try {

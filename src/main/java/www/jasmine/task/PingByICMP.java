@@ -20,7 +20,7 @@ public class PingByICMP extends AbstractTask {
 
     @Override
     public Report run() {
-        logger.info(String.format("To run: %s on host: %s with config timeout %d ms", command.name(), host, config.getWait()));
+        logger.info(String.format("To run: %s on host: %s with config wait %d m before sending next echo packet", command.name(), host, config.getWait()));
 
         Report report = null;
         try {
