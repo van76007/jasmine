@@ -29,7 +29,7 @@ public class DefaultGatewayMacBuilder extends AbstractNetworkCommand {
                 defaultGatewayMac = p.getHeader().getSrcAddr();
             }
         } catch(PcapNativeException | NotOpenException e) {
-            e.printStackTrace();
+            logger.severe(e.getMessage());
         } finally {
             closeExecutor(executor);
             closeHandler(sendHandle);
@@ -43,7 +43,7 @@ public class DefaultGatewayMacBuilder extends AbstractNetworkCommand {
         try {
             sendHTTPRequest();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.severe(e.getMessage());
         }
         return start;
     }

@@ -46,7 +46,7 @@ public class PingCommand extends AbstractNetworkCommand {
             setupSendPacketHandler();
             reportMessage = loop();
         } catch(PcapNativeException | NotOpenException e) {
-            e.printStackTrace();
+            logger.severe(e.getMessage());
         } finally {
             closeExecutor(executor);
             closeHandler(sendHandle);
@@ -83,7 +83,7 @@ public class PingCommand extends AbstractNetworkCommand {
         try {
             Thread.sleep(config.getWait());
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            logger.severe(e.getMessage());
         }
     }
 
@@ -132,7 +132,7 @@ public class PingCommand extends AbstractNetworkCommand {
         try {
             sendHandle.sendPacket(packet);
         } catch (PcapNativeException | NotOpenException e) {
-            e.printStackTrace();
+            logger.severe(e.getMessage());
         }
         return start;
     }

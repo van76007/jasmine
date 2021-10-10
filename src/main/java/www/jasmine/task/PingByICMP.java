@@ -20,14 +20,14 @@ public class PingByICMP extends AbstractTask {
 
     @Override
     public Report run() {
-        logger.info(String.format("To run: %s on host: %s with config timeout %d ms", command.name(), host, config.getWait()));
+        logger.info(String.format("To run: %s on host: %s with config wait %d m before sending next echo packet", command.name(), host, config.getWait()));
 
         Report report = null;
         try {
             PingCommand ping = new PingCommand(parameter, host, config);
             report = ping.ping();
         } catch (UnknownHostException e) {
-            e.printStackTrace();
+            logger.severe(e.getMessage());
         }
         if (report == null) {
             return new Report(host, "Unknown host to ping", Command.PING_ICMP);

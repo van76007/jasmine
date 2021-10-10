@@ -20,14 +20,14 @@ public class TraceRoute extends AbstractTask {
 
     @Override
     public Report run() {
-        logger.info(String.format("To run: %s on hosts: %s with config timeout %d ms", command.name(), host, config.getPause()));
+        logger.info(String.format("To run: %s on hosts: %s with config pause %d ms between probing the same hop", command.name(), host, config.getPause()));
 
         Report report = null;
         try {
             TraceRouteCommand traceRoute = new TraceRouteCommand(parameter, host, config);
             report = traceRoute.trace();
         } catch (UnknownHostException e) {
-            e.printStackTrace();
+            logger.severe(e.getMessage());
         }
         if (report == null) {
             return new Report(host, "Unable to trace route to host: " + host, Command.TRACEROUTE);

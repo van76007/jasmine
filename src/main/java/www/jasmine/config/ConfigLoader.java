@@ -14,6 +14,7 @@ public class ConfigLoader {
             long delay = Long.parseLong(prop.getProperty("delay"));
             long shutdownPeriod = Long.parseLong(prop.getProperty("shutdown.period"));
             String reportUrl = prop.getProperty("report.url");
+            String reportLogFilePath = prop.getProperty("report.path");
             int pingCount = Integer.parseInt(prop.getProperty("ping.count"));
             int pingTimeout = Integer.parseInt(prop.getProperty("ping.timeout"));
             long pingWait = Long.parseLong(prop.getProperty("ping.wait"));
@@ -23,10 +24,9 @@ public class ConfigLoader {
 
             PingConfig pingConfig = new PingConfig(pingCount, pingTimeout, pingWait);
             TracertConfig tracertConfig = new TracertConfig(traceRoutePause, traceRouteMaxTTL, traceRouteNumberOfProbes);
-            // String[] hosts = new String[] { prop.getProperty("host.site1"), prop.getProperty("host.site2") };
-            String[] hosts = new String[] { "github.agoda.com" };
+            String[] hosts = new String[] { prop.getProperty("host.site1"), prop.getProperty("host.site2") };
 
-            return new AppConfig(pingConfig, tracertConfig, hosts, delay, shutdownPeriod, reportUrl);
+            return new AppConfig(pingConfig, tracertConfig, hosts, delay, shutdownPeriod, reportUrl, reportLogFilePath);
         }
     }
 }
