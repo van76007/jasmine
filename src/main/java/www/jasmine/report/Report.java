@@ -2,7 +2,7 @@ package www.jasmine.report;
 
 public class Report {
     private String host;
-    private String message;
+    private final String message;
 
     public Report(String host, String message) {
         this.host = host;
@@ -17,11 +17,11 @@ public class Report {
         this.host = host;
     }
 
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
+    @Override
+    public String toString() {
+        return "Report{" +
+                "host='" + host + '\'' +
+                ", message=\n'" + message + '\'' +
+                '}';
     }
 }

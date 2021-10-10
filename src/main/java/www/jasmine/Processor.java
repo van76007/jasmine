@@ -3,13 +3,18 @@ package www.jasmine;
 import www.jasmine.config.AppConfig;
 import www.jasmine.network.NetworkParameter;
 import www.jasmine.network.NetworkParameterBuilder;
+import www.jasmine.report.Report;
+import www.jasmine.report.Reporter;
 import www.jasmine.task.AbstractTask;
 import www.jasmine.task.PingByHTTP;
 import www.jasmine.task.PingByICMP;
 import www.jasmine.task.TraceRoute;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class Processor {
     AppConfig appConfig;
@@ -19,6 +24,8 @@ public class Processor {
     ScheduledExecutorService executorForAllTasks = Executors.newScheduledThreadPool(2);
     ScheduledExecutorService scheduledShutdownExecutor = Executors.newSingleThreadScheduledExecutor();
 
+    Reporter reporter = new Reporter();
+
     public Processor(AppConfig appConfig) {
         this.appConfig = appConfig;
     }
@@ -26,7 +33,6 @@ public class Processor {
     public void run() {
         NetworkParameterBuilder builder = new NetworkParameterBuilder();
         NetworkParameter networkParameter = builder.buildNetworkParameter();
-
         runNetworkCommand(appConfig.getHosts(), networkParameter, appConfig);
     }
 
@@ -40,7 +46,7 @@ public class Processor {
                 resultFuture.cancel(true);
                 executorForAllTasks.shutdown();
                 executorForAllHosts.shutdown();
-                logger.info("Finish running network commands for all hosts");
+                logger.info("Finish running network commands for a host");
             }, appConfig.getShutdownPeriod(), TimeUnit.SECONDS);
         }
         scheduledShutdownExecutor.shutdown();
@@ -50,12 +56,11 @@ public class Processor {
         AbstractTask pingByHTTP = new PingByHTTP(host, config.getPingConfig(), networkParameter);
         AbstractTask pingByICMP = new PingByICMP(host, config.getPingConfig(), networkParameter);
         AbstractTask traceRoute = new TraceRoute(host, config.getTracertConfig(), networkParameter);
-
         AbstractTask[] tasks = new AbstractTask[] { pingByHTTP, pingByICMP, traceRoute };
-        for (AbstractTask task : tasks) {
-            Runnable runnable = task::run;
-            executorForAllTasks
-                    .scheduleAtFixedRate(runnable, 0, config.getDelay(), TimeUnit.MILLISECONDS);
-        }
+        Runnable runnable = () -> {
+            List<Report> reports = Arrays.stream(tasks).sequential().map(AbstractTask::run).collect(Collectors.toList());
+            reporter.forwardReports(reports);
+        };
+        executorForAllTasks.scheduleAtFixedRate(runnable, 0, config.getDelay(), TimeUnit.MILLISECONDS);
     }
 }
