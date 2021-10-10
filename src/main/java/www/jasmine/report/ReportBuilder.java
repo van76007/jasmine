@@ -1,4 +1,4 @@
-package www.jasmine.network;
+package www.jasmine.report;
 
 public class ReportBuilder {
     private StringBuilder stringBuilder = new StringBuilder();

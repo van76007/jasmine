@@ -2,7 +2,8 @@ package www.jasmine.report;
 
 import www.jasmine.Command;
 import www.jasmine.SingletonLogger;
-import www.jasmine.config.AppConfig;
+import www.jasmine.model.config.AppConfig;
+import www.jasmine.model.report.Report;
 
 import java.io.File;
 import java.io.IOException;

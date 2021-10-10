@@ -6,6 +6,7 @@ import org.pcap4j.core.PcapNetworkInterface;
 import org.pcap4j.core.Pcaps;
 import org.pcap4j.util.MacAddress;
 import www.jasmine.SingletonLogger;
+import www.jasmine.model.network.NetworkParameter;
 
 import java.net.Inet4Address;
 import java.net.Inet6Address;

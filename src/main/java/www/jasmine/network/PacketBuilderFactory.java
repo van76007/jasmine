@@ -6,6 +6,9 @@ import org.pcap4j.util.MacAddress;
 
 import java.net.Inet4Address;
 
+/**
+ * Build a packet to be sent to the Internet using the *onion* model
+ */
 public class PacketBuilderFactory {
     public static IcmpV4EchoPacket.Builder getIcmpEchoPacketBuilder(short count, short identifier) {
         byte[] echoData = new byte[48];

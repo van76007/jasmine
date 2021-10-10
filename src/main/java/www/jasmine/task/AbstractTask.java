@@ -2,8 +2,8 @@ package www.jasmine.task;
 
 import www.jasmine.Command;
 import www.jasmine.SingletonLogger;
-import www.jasmine.network.NetworkParameter;
-import www.jasmine.report.Report;
+import www.jasmine.model.network.NetworkParameter;
+import www.jasmine.model.report.Report;
 
 import java.util.logging.Logger;
 

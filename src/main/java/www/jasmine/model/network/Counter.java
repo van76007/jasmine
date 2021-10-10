@@ -1,4 +1,4 @@
-package www.jasmine.network;
+package www.jasmine.model.network;
 
 public class Counter {
     private int sequence;

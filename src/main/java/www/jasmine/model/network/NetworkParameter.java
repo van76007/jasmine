@@ -1,4 +1,4 @@
-package www.jasmine.network;
+package www.jasmine.model.network;
 
 import org.pcap4j.core.PcapNetworkInterface;
 import org.pcap4j.util.MacAddress;

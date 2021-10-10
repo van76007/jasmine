@@ -6,14 +6,21 @@ import org.pcap4j.core.Pcaps;
 import org.pcap4j.packet.*;
 import org.pcap4j.util.MacAddress;
 import www.jasmine.Command;
-import www.jasmine.config.PingConfig;
-import www.jasmine.report.Report;
+import www.jasmine.model.config.PingConfig;
+import www.jasmine.model.network.Counter;
+import www.jasmine.model.network.NetworkParameter;
+import www.jasmine.model.network.ReceivedPacket;
+import www.jasmine.model.report.Report;
+import www.jasmine.report.ReportBuilder;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Random;
 
+/**
+ * Basic ping command by ICMP. This repeatedly send ICMP Echo packet to the remote host and wait for the ICMP Reply
+ */
 public class PingCommand extends AbstractNetworkCommand {
     final static int TTL = 100;
     PingConfig config;
@@ -87,6 +94,13 @@ public class PingCommand extends AbstractNetworkCommand {
         }
     }
 
+    /**
+     * Process the receiving packet, providing that it is ICMP Reply packet
+     * @param receivedPacket
+     * @param counter
+     * @param reportBuilder
+     * @param identifier
+     */
     protected void processReceivedPacket(ReceivedPacket receivedPacket, Counter counter, ReportBuilder reportBuilder, short identifier) {
         String message;
         Packet packet = receivedPacket.getPacket();

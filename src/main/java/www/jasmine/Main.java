@@ -1,6 +1,6 @@
 package www.jasmine;
 
-import www.jasmine.config.AppConfig;
+import www.jasmine.model.config.AppConfig;
 import www.jasmine.config.ConfigLoader;
 
 import java.io.IOException;

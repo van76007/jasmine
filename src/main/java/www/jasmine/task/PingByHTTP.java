@@ -1,9 +1,9 @@
 package www.jasmine.task;
 
 import www.jasmine.Command;
-import www.jasmine.config.PingConfig;
-import www.jasmine.network.NetworkParameter;
-import www.jasmine.report.Report;
+import www.jasmine.model.config.PingConfig;
+import www.jasmine.model.network.NetworkParameter;
+import www.jasmine.model.report.Report;
 
 import java.io.IOException;
 import java.net.InetAddress;

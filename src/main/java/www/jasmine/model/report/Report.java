@@ -1,4 +1,4 @@
-package www.jasmine.report;
+package www.jasmine.model.report;
 
 import www.jasmine.Command;
 

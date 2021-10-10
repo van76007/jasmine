@@ -1,9 +1,9 @@
 package www.jasmine;
 
-import www.jasmine.config.AppConfig;
-import www.jasmine.network.NetworkParameter;
+import www.jasmine.model.config.AppConfig;
+import www.jasmine.model.network.NetworkParameter;
 import www.jasmine.network.NetworkParameterBuilder;
-import www.jasmine.report.Report;
+import www.jasmine.model.report.Report;
 import www.jasmine.report.Reporter;
 import www.jasmine.task.AbstractTask;
 import www.jasmine.task.PingByHTTP;

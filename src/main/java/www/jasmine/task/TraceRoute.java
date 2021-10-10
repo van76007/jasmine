@@ -1,14 +1,12 @@
 package www.jasmine.task;
 
 import www.jasmine.Command;
-import www.jasmine.config.TracertConfig;
-import www.jasmine.network.NetworkParameter;
+import www.jasmine.model.config.TracertConfig;
+import www.jasmine.model.network.NetworkParameter;
 import www.jasmine.network.TraceRouteCommand;
-import www.jasmine.report.Report;
+import www.jasmine.model.report.Report;
 
-import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.concurrent.ExecutorService;
 
 public class TraceRoute extends AbstractTask {
     TracertConfig config;

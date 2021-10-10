@@ -1,4 +1,4 @@
-package www.jasmine.config;
+package www.jasmine.model.config;
 
 import java.util.Arrays;
 

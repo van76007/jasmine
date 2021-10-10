@@ -1,14 +1,12 @@
 package www.jasmine.task;
 
 import www.jasmine.Command;
-import www.jasmine.config.PingConfig;
-import www.jasmine.network.NetworkParameter;
+import www.jasmine.model.config.PingConfig;
+import www.jasmine.model.network.NetworkParameter;
 import www.jasmine.network.PingCommand;
-import www.jasmine.report.Report;
+import www.jasmine.model.report.Report;
 
-import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.concurrent.ExecutorService;
 
 public class PingByICMP extends AbstractTask {
     PingConfig config;

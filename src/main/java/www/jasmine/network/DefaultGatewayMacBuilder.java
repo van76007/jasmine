@@ -6,13 +6,19 @@ import org.pcap4j.packet.EthernetPacket;
 import org.pcap4j.packet.Packet;
 import org.pcap4j.util.MacAddress;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import www.jasmine.model.network.NetworkParameter;
+import www.jasmine.model.network.ReceivedPacket;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URL;
 
+/**
+ * To automatically detect the MAC of the default gateway.
+ * The trick is to send an HTTP request and waiting for the reply. The Ethernet packet of the reply is sent from the
+ * gateway. Thus, the MAC of the default gateway can be extracted from it
+ */
 public class DefaultGatewayMacBuilder extends AbstractNetworkCommand {
-
     public DefaultGatewayMacBuilder(NetworkParameter parameter) {
         super(parameter);
         this.bpfExpression = "tcp and dst host " + parameter.getLocalIP().getHostAddress();

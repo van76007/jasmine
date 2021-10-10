@@ -2,12 +2,22 @@ package www.jasmine.network;
 
 import org.pcap4j.packet.*;
 import www.jasmine.Command;
-import www.jasmine.config.TracertConfig;
-import www.jasmine.report.Report;
+import www.jasmine.model.config.TracertConfig;
+import www.jasmine.model.network.Counter;
+import www.jasmine.model.network.NetworkParameter;
+import www.jasmine.model.network.ReceivedPacket;
+import www.jasmine.model.report.Report;
+import www.jasmine.report.ReportBuilder;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+/**
+ * Trace route by ICMP echo packet, starting with TTL = 1
+ * If receiving the ICMP Time exceeded in transit packet from a hop, try to probe the same hop again. It means we retain
+ * the same TTL. If number of probes is reached for a hop, try to reach to the next hop by increasing the TTL by 1.
+ * Repeat until the TTL reach the max TTL (default value is 64)
+ */
 public class TraceRouteCommand extends PingCommand {
     TracertConfig config;
 

@@ -1,10 +1,17 @@
 package www.jasmine.config;
 
+import www.jasmine.model.config.AppConfig;
+import www.jasmine.model.config.PingConfig;
+import www.jasmine.model.config.TracertConfig;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+/**
+ * Load configuration from the config file
+ */
 public class ConfigLoader {
     public AppConfig buildAppConfig(String pathToConfigFile) throws IOException, NumberFormatException {
         try (InputStream input = new FileInputStream(pathToConfigFile)) {
