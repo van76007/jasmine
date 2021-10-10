@@ -31,4 +31,5 @@ Compile and Run
 3. Output
 
 The application will log in *jasmine.log* file. We avoid to use any logging library, only use the basic logging provided
-by Java core. The report can be found in either a fictious uploading website or a local file 
+by Java core. The report can be found in either a fictious uploading website or a local file *jasmine_report.log*.
+The path to the report log file is configurable in the config.properties file
