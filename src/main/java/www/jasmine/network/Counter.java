@@ -3,10 +3,12 @@ package www.jasmine.network;
 public class Counter {
     private int sequence;
     private int ttl;
+    private int seeTheSameHopCount;
 
     public Counter(int sequence, int ttl) {
         this.sequence = sequence;
         this.ttl = ttl;
+        this.seeTheSameHopCount = 0;
     }
 
     public int getSequence() {
@@ -29,11 +31,24 @@ public class Counter {
         this.ttl += amount;
     }
 
+    public int getSeeTheSameHopCount() {
+        return seeTheSameHopCount;
+    }
+
+    public void setSeeTheSameHopCount(int seeTheSameHopCount) {
+        this.seeTheSameHopCount = seeTheSameHopCount;
+    }
+
+    public void increaseSeeTheSameHostCount(int amount) {
+        this.seeTheSameHopCount += amount;
+    }
+
     @Override
     public String toString() {
         return "Counter{" +
                 "sequence=" + sequence +
                 ", ttl=" + ttl +
+                ", seeTheSameHostCount=" + seeTheSameHopCount +
                 '}';
     }
 }

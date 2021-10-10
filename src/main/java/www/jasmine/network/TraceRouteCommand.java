@@ -40,14 +40,6 @@ public class TraceRouteCommand extends PingCommand {
     }
 
     @Override
-    protected void setNextTTL(Counter counter) {
-        int sequence = counter.getSequence();
-        int quotient = (sequence - 1) / config.getNumberOfProbes();
-        int newTtl = quotient + 1;
-        counter.setTtl(newTtl);
-    }
-
-    @Override
     protected void processReceivedPacket(ReceivedPacket receivedPacket, Counter counter, ReportBuilder reportBuilder, short identifier) {
         Packet packet = receivedPacket.getPacket();
         String reportMessage;
@@ -60,8 +52,25 @@ public class TraceRouteCommand extends PingCommand {
                     hopAddress.getHostAddress(),
                     receivedPacket.getDelayInMilliseconds());
             reportBuilder.appendReportMessage(reportMessage);
-            counter.increaseSequence(1);
+            setNextCounter(counter);
         }
+    }
+
+    /**
+     * Probe each hop that return ICMP Time Exceeded message until max number of probes reached
+     * @param counter Counter value to be updated
+     *                If number of seeing the same hop reach max number of probe, increase TTL
+     *                Else keep the same TTL
+     */
+    @Override
+    protected void setNextCounter(Counter counter) {
+        if (counter.getSeeTheSameHopCount() < config.getNumberOfProbes() - 1) {
+            counter.increaseSeeTheSameHostCount(1);
+        } else {
+            counter.setSeeTheSameHopCount(0);
+            counter.increaseTtl(1);
+        }
+        counter.increaseSequence(1);
     }
 
     /**

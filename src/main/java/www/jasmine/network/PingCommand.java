@@ -54,7 +54,7 @@ public class PingCommand extends AbstractNetworkCommand {
         ReportBuilder reportBuilder = new ReportBuilder();
         Counter counter = initializeCounter();
         while(shouldContinue(counter)) {
-            setNextTTL(counter);
+            // setNextTTL(counter);
             Packet packet = buildPacket(counter.getSequence(), counter.getTtl(), identifier, parameter, remoteInetAddress);
             if (counter.getSequence() > 0) {
                 pause();
@@ -72,11 +72,11 @@ public class PingCommand extends AbstractNetworkCommand {
     protected boolean shouldContinue(Counter counter) {
         return counter.getSequence() < config.getCount();
     }
-
+    /*
     protected void setNextTTL(Counter counter) {
         counter.setTtl(TTL);
     }
-
+    */
     protected void pause() {
         try {
             Thread.sleep(config.getWait());
@@ -98,6 +98,10 @@ public class PingCommand extends AbstractNetworkCommand {
                 reportBuilder.appendReportMessage(message);
             }
         }
+        setNextCounter(counter);
+    }
+
+    protected void setNextCounter(Counter counter) {
         counter.increaseSequence(1);
     }
 
