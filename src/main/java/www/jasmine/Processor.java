@@ -24,10 +24,11 @@ public class Processor {
     ScheduledExecutorService executorForAllTasks = Executors.newScheduledThreadPool(2);
     ScheduledExecutorService scheduledShutdownExecutor = Executors.newSingleThreadScheduledExecutor();
 
-    Reporter reporter = new Reporter();
+    Reporter reporter;
 
     public Processor(AppConfig appConfig) {
         this.appConfig = appConfig;
+        this.reporter = new Reporter(appConfig);
     }
 
     public void run() {
