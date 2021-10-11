@@ -40,6 +40,7 @@ public class NetworkParameterBuilder {
     }
 
     private NetworkParameter getLocalNetworkInterfaceParameter(InetAddress hostIP) {
+        logger.info("this machine IP: " + hostIP.toString());
         byte[] inputIpInBytes = hostIP.getAddress();
         try {
             for (PcapNetworkInterface currentInterface : Pcaps.findAllDevs()) {
@@ -68,7 +69,8 @@ public class NetworkParameterBuilder {
 
     private boolean isSameTypeAddress(InetAddress address1, InetAddress address2) {
         return (address1 instanceof Inet6Address && address2 instanceof Inet6Address)
-                || (address1 instanceof Inet4Address && address2 instanceof Inet4Address);
+                || (address1 instanceof Inet4Address && address2 instanceof Inet4Address)
+                || (address1.toString().equals(address2.toString()));
     }
 
     private boolean isUnderSameSubNet(InetAddress testAddr, InetAddress currentAddr, InetAddress maskAddr) {
