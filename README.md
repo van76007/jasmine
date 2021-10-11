@@ -51,5 +51,5 @@ The path to the report log file is configurable in the config.properties file (S
 
 Credits
 =======
-1. [Pcap4j](https://github.com/kaitoy/pcap4j)
-2. [MAC detector](https://github.com/gaoxingliang)
+1. Library [Pcap4j](https://github.com/kaitoy/pcap4j)
+2. Sample code [MAC detector](https://github.com/gaoxingliang)
