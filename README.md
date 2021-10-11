@@ -41,7 +41,8 @@ Compile and Run
    * Copy _libpcap.1.8.1.dylib_ from `/libpcapfiles/macos` to the `/tmp` folder
    * Run
    `java -jar uber-jasmine-1.0-SNAPSHOT.jar config.properties`
-    
+
+The application was developed and tested on Mac OSX. A sample _uber_ jar file can be found in `build/uber-jasmine-1.0-SNAPSHOT.jar`    
 3. Output
 
 The application will log in the same folder as the _uber_ jar, *jasmine.log* file. We avoid to use any logging library, only use the basic logging provided
