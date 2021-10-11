@@ -7,6 +7,15 @@ import java.io.IOException;
 import java.util.logging.Logger;
 
 public class Main {
+    // ToDo: load suitable version of libpcap depends on OS and architecture 32/64 bits
+    static {
+        try {
+            System.load("/tmp/libpcap64.so");
+        } catch (UnsatisfiedLinkError e) {
+            System.err.println("Native code library failed to load.\n" + e);
+            System.exit(1);
+        }
+    }
 
     public static void main(String[] args) {
         Logger logger = SingletonLogger.SingletonLogger().logger;

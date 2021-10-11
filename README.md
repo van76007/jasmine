@@ -27,6 +27,11 @@ Compile and Run
 2. Run
 
    `java -jar uber-jasmine-1.0-SNAPSHOT.jar config.properties`
+   
+   2.1 Linux
+   * Copy _libpcap.so_ or _libpcap64.so_ depends on the OS architure from `/libpcapfiles/linux/` to the `/tmp` folder
+   * Require sudo privilege to detect all the network interfaces(see `Pcaps.findAllDevs()`) 
+   `sudo java -jar uber-jasmine-1.0-SNAPSHOT.jar config.properties`
 
 3. Output
 

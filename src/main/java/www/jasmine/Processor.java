@@ -34,6 +34,7 @@ public class Processor {
     public void run() {
         NetworkParameterBuilder builder = new NetworkParameterBuilder();
         NetworkParameter networkParameter = builder.buildNetworkParameter();
+        logger.info("NetworkParameter: " + networkParameter.toString());
         runNetworkCommand(appConfig.getHosts(), networkParameter, appConfig);
     }
 
