@@ -69,6 +69,7 @@ public class TraceRouteCommand extends PingCommand {
             reportBuilder.appendReportMessage(reportMessage);
             setNextCounter(counter);
         }
+        setNextCounter(counter);
     }
 
     /**
