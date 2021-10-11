@@ -48,3 +48,8 @@ The application was developed and tested on Mac OSX. A sample _uber_ jar file ca
 The application will log in the same folder as the _uber_ jar, *jasmine.log* file. We avoid to use any logging library, only use the basic logging provided
 by Java core. The report can be found in either a fictious uploading website or a local file *jasmine_report.log*.
 The path to the report log file is configurable in the config.properties file (See `report.path`)
+
+Credits
+=======
+1. [Pcap4j](https://github.com/kaitoy/pcap4j)
+2. [MAC detector](https://github.com/gaoxingliang)
