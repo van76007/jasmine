@@ -33,6 +33,7 @@ Compile and Run
    * Copy _libpcap.so_ or _libpcap64.so_ depends on the OS architure from `/libpcapfiles/linux` to the `/tmp` folder
    * Require sudo privilege to detect all the network interfaces(see `Pcaps.findAllDevs()`) 
    `sudo java -jar uber-jasmine-1.0-SNAPSHOT.jar config.properties`
+   * Hiccup: If we run the application as sudo, actually we ping by HTTP rather than ICMP when calling `address.isReachable()`. Voila!
    
    2.2 Windows
    * Not yet tested as I do not have a Windows machine
